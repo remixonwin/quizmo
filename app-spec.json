@@ -1,0 +1,9 @@
+{
+  "name": "mn-dmv-quiz",
+  "domains": [
+    {
+      "domain": "quizmo.me",
+      "type": "PRIMARY"
+    }
+  ]
+}

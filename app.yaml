@@ -2,24 +2,76 @@ name: mn-dmv-quiz
 region: nyc
 services:
 - name: web
-  dockerfile_path: Dockerfile
+  instance_count: 1
+  instance_size_slug: basic-xxs
   git:
     branch: main
     repo_clone_url: https://github.com/remixonwin/quizmo.git
-  http_port: 8000
-  instance_count: 1
-  instance_size_slug: basic-xxs
+  dockerfile_path: Dockerfile
   source_dir: /
+  http_port: 8000
+  run_command: gunicorn --bind 0.0.0.0:8000 --workers 4 --worker-class sync --timeout 30 --log-level info windsurf_app.wsgi:application
+  health_check:
+    http_path: /health/
+    initial_delay_seconds: 30
+    period_seconds: 10
+    success_threshold: 1
+    failure_threshold: 3
+    timeout_seconds: 5
+  envs:
+    - key: PYTHONPATH
+      scope: RUN_AND_BUILD_TIME
+      value: /app
+    - key: DJANGO_SETTINGS_MODULE
+      scope: RUN_AND_BUILD_TIME
+      value: windsurf_app.settings
+    - key: DEBUG
+      scope: RUN_AND_BUILD_TIME
+      value: "0"
+    - key: ALLOWED_HOSTS
+      scope: RUN_AND_BUILD_TIME
+      value: "*.ondigitalocean.app,quizmo.me"
+    - key: DJANGO_SECRET_KEY
+      scope: RUN_AND_BUILD_TIME
+      value: ${DJANGO_SECRET_KEY}
+    - key: DATABASE_URL
+      scope: RUN_AND_BUILD_TIME
+      value: ${DATABASE_URL}
+    - key: CACHE_BACKEND
+      scope: RUN_AND_BUILD_TIME
+      value: "django_redis.cache.RedisCache"
+    - key: CACHE_LOCATION
+      scope: RUN_AND_BUILD_TIME
+      value: ${REDIS_URL}
+    - key: SECURE_SSL_REDIRECT
+      scope: RUN_AND_BUILD_TIME
+      value: "True"
+    - key: SESSION_COOKIE_SECURE
+      scope: RUN_AND_BUILD_TIME
+      value: "True"
+    - key: CSRF_COOKIE_SECURE
+      scope: RUN_AND_BUILD_TIME
+      value: "True"
+    - key: SECURE_HSTS_SECONDS
+      scope: RUN_AND_BUILD_TIME
+      value: "31536000"
+    - key: SECURE_HSTS_INCLUDE_SUBDOMAINS
+      scope: RUN_AND_BUILD_TIME
+      value: "True"
+    - key: SECURE_HSTS_PRELOAD
+      scope: RUN_AND_BUILD_TIME
+      value: "True"
+    - key: STATIC_URL
+      scope: RUN_AND_BUILD_TIME
+      value: "/static/"
+    - key: STATIC_ROOT
+      scope: RUN_AND_BUILD_TIME
+      value: "/app/staticfiles"
+  routes:
+    - path: /
+      preserve_path_prefix: true
+    - path: /static
+      preserve_path_prefix: true
 domains:
 - domain: quizmo.me
   type: PRIMARY
-envs:
-- key: DJANGO_SETTINGS_MODULE
-  scope: RUN_AND_BUILD_TIME
-  value: windsurf_app.settings
-- key: DEBUG
-  scope: RUN_AND_BUILD_TIME
-  value: "0"
-- key: ALLOWED_HOSTS
-  scope: RUN_AND_BUILD_TIME
-  value: "quizmo.me,.digitalocean.app"
