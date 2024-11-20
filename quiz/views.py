@@ -5,6 +5,7 @@ import threading
 import json
 import datetime
 from datetime import timedelta
+import os
 
 # Django imports
 from django.shortcuts import render, get_object_or_404, redirect
@@ -37,9 +38,10 @@ browser_logger.addHandler(file_handler)
 
 # Configure logging for health checks
 health_logger = logging.getLogger('health_checks')
-health_logger.setLevel(logging.INFO)
+health_logger.setLevel(logging.DEBUG)  # Set to DEBUG for more verbose logging
 handler = logging.StreamHandler()
-handler.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(message)s'))
+formatter = logging.Formatter('%(asctime)s [%(levelname)s] [%(process)d] %(message)s')
+handler.setFormatter(formatter)
 health_logger.addHandler(handler)
 
 # Track application startup time - ensure this is module level
@@ -53,32 +55,48 @@ db_lock = threading.Lock()
 def check_database():
     """Thread-safe database check with connection reset on failure."""
     with db_lock:
+        health_logger.debug(f'Database check started. Process ID: {os.getpid()}')
         try:
-            # Log attempt to check database
             health_logger.debug('Attempting database connection check')
+            # Get current connection state
+            health_logger.debug(f'Connection state before check: {connection.connection is not None}')
+            
             connection.ensure_connection()
             with connection.cursor() as cursor:
+                start_time = time.time()
                 cursor.execute('SELECT 1')
                 cursor.fetchone()
-                health_logger.debug('Database check successful')
+                query_time = time.time() - start_time
+                health_logger.debug(f'Database query completed in {query_time:.2f}s')
                 return True, None
         except OperationalError as e:
-            health_logger.warning(f'Initial database check failed: {str(e)}. Attempting retry...')
+            health_logger.warning(
+                f'Initial database check failed: {str(e)}. '
+                f'Connection info: {connection.get_connection_params()}. '
+                'Attempting retry...'
+            )
             try:
+                health_logger.debug('Closing existing connection...')
                 connection.close()
+                health_logger.debug('Establishing new connection...')
                 connection.connect()
                 with connection.cursor() as cursor:
+                    start_time = time.time()
                     cursor.execute('SELECT 1')
                     cursor.fetchone()
-                    health_logger.info('Database retry successful')
+                    query_time = time.time() - start_time
+                    health_logger.info(f'Database retry successful. Query time: {query_time:.2f}s')
                     return True, None
             except Exception as retry_error:
-                error_msg = f"Database retry failed: {str(retry_error)}"
-                health_logger.error(error_msg)
+                error_msg = (
+                    f"Database retry failed: {str(retry_error)}. "
+                    f"Connection params: {connection.get_connection_params()}"
+                )
+                health_logger.error(error_msg, exc_info=True)
                 return False, error_msg
         except Exception as e:
             error_msg = f"Database check failed: {str(e)}"
-            health_logger.error(error_msg)
+            health_logger.error(error_msg, exc_info=True)
             return False, error_msg
 
 @never_cache
@@ -90,38 +108,63 @@ def health_check(request):
     """
     current_time = time.time()
     uptime = int(current_time - STARTUP_TIME)
+    process_id = os.getpid()
+    
+    health_logger.debug(
+        f'Health check request received. '
+        f'Process: {process_id}, '
+        f'Uptime: {uptime}s, '
+        f'Remote addr: {request.META.get("REMOTE_ADDR")}'
+    )
     
     # During startup grace period, always return 200 OK
     if uptime < STARTUP_GRACE_PERIOD:
-        health_logger.info(f'Health check during startup grace period (uptime: {uptime}s)')
+        health_logger.info(
+            f'Health check during startup grace period '
+            f'(uptime: {uptime}s, remaining: {STARTUP_GRACE_PERIOD - uptime}s)'
+        )
         response_data = {
             'status': 'starting',
             'message': 'Application is starting up',
             'uptime': uptime,
-            'grace_period_remaining': STARTUP_GRACE_PERIOD - uptime
+            'grace_period_remaining': STARTUP_GRACE_PERIOD - uptime,
+            'process_id': process_id,
+            'timestamp': datetime.datetime.now().isoformat()
         }
         response = JsonResponse(response_data)
         response.status_code = 200
         return response
     
     # After grace period, check database
+    start_time = time.time()
     db_healthy, error_msg = check_database()
+    check_duration = time.time() - start_time
     
-    status = {
+    response_data = {
         'status': 'healthy' if db_healthy else 'unhealthy',
-        'database': db_healthy,
-        'uptime': uptime
+        'uptime': uptime,
+        'process_id': process_id,
+        'check_duration': f'{check_duration:.2f}s',
+        'timestamp': datetime.datetime.now().isoformat()
     }
     
     if not db_healthy:
-        status['error'] = error_msg
-        health_logger.error(f'Health check failed (uptime: {uptime}s): {error_msg}')
-        response = JsonResponse(status)
+        response_data['error'] = error_msg
+        health_logger.error(
+            f'Health check failed. '
+            f'Duration: {check_duration:.2f}s, '
+            f'Error: {error_msg}'
+        )
+        response = JsonResponse(response_data)
         response.status_code = 503
         return response
     
-    health_logger.info(f'Health check successful (uptime: {uptime}s)')
-    response = JsonResponse(status)
+    health_logger.info(
+        f'Health check successful. '
+        f'Duration: {check_duration:.2f}s, '
+        f'Process: {process_id}'
+    )
+    response = JsonResponse(response_data)
     response.status_code = 200
     return response
 
