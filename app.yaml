@@ -19,11 +19,11 @@ services:
   run_command: gunicorn --bind 0.0.0.0:8000 --workers 4 --worker-class sync --timeout 30 --log-level info windsurf_app.wsgi:application
   health_check:
     http_path: /health/
-    initial_delay_seconds: 60
-    period_seconds: 30
+    initial_delay_seconds: 90
+    period_seconds: 10
     success_threshold: 1
-    failure_threshold: 6
-    timeout_seconds: 20
+    failure_threshold: 3
+    timeout_seconds: 5
   envs:
     - key: PYTHONPATH
       scope: RUN_AND_BUILD_TIME

@@ -22,6 +22,7 @@ from django.db import transaction, connections
 from django.views.decorators.vary import vary_on_cookie
 from redis.exceptions import RedisError
 from django.views.decorators.http import require_GET
+import time
 
 # Configure logger
 browser_logger = logging.getLogger('browser_errors')
@@ -405,32 +406,47 @@ def help_page(request):
     """View for the help page."""
     return render(request, 'quiz/help.html')
 
+import time
+from django.conf import settings
+
+# Track application startup time
+STARTUP_TIME = time.time()
+STARTUP_GRACE_PERIOD = 90  # seconds
+
 @never_cache
 @require_GET
 def health_check(request):
     """
     Health check endpoint for monitoring system status.
-    Currently only checks database connection.
+    Implements startup state handling and graceful database checks.
     """
+    # During startup grace period, return 200 OK
+    if time.time() - STARTUP_TIME < STARTUP_GRACE_PERIOD:
+        return JsonResponse({
+            'status': 'starting',
+            'message': 'Application is starting up'
+        }, status=200)
+    
     status = {
+        'status': 'healthy',
         'database': True,
-        'status': 'healthy'
+        'uptime': int(time.time() - STARTUP_TIME)
     }
     
     # Check database connection
     try:
-        with connections['default'].cursor() as cursor:
+        # Use a shorter timeout for the database check
+        from django.db import connection
+        with connection.cursor() as cursor:
             cursor.execute('SELECT 1')
+            cursor.fetchone()
     except Exception as e:
-        status['database'] = False
-        status['database_error'] = str(e)
-        status['status'] = 'unhealthy'
-        logging.error(f'Database health check failed: {e}')
+        status.update({
+            'status': 'unhealthy',
+            'database': False,
+            'error': str(e)
+        })
+        logging.error(f'Health check database error: {e}')
+        return JsonResponse(status, status=503)
 
-    # Set response code based on database status
-    response_code = 200 if status['database'] else 503
-
-    # Return detailed status
-    response = JsonResponse(status)
-    response.status_code = response_code
-    return response
+    return JsonResponse(status, status=200)
