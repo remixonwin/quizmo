@@ -6,6 +6,10 @@ import json
 import datetime
 from datetime import timedelta
 import os
+import psutil
+import socket
+from django.conf import settings
+from django.core.cache import cache
 
 # Django imports
 from django.shortcuts import render, get_object_or_404, redirect
@@ -52,50 +56,136 @@ DB_TIMEOUT = 5  # seconds
 # Lock for thread-safe database operations
 db_lock = threading.Lock()
 
+def get_system_metrics():
+    """Gather system metrics for diagnostics."""
+    try:
+        process = psutil.Process(os.getpid())
+        metrics = {
+            'memory_percent': process.memory_percent(),
+            'cpu_percent': process.cpu_percent(),
+            'threads': process.num_threads(),
+            'open_files': len(process.open_files()),
+            'connections': len(process.connections()),
+            'hostname': socket.gethostname(),
+            'worker_pid': os.getpid(),
+            'worker_ppid': os.getppid()
+        }
+        return metrics
+    except Exception as e:
+        health_logger.error(f"Failed to gather system metrics: {str(e)}", exc_info=True)
+        return {}
+
+def check_redis_connection():
+    """Check Redis connection status."""
+    try:
+        cache.set('health_check_test', 'test', timeout=10)
+        result = cache.get('health_check_test')
+        return result == 'test', None
+    except Exception as e:
+        return False, f"Redis connection failed: {str(e)}"
+
+def get_database_metrics():
+    """Get database connection metrics."""
+    try:
+        from django.db import connections
+        db_metrics = {}
+        for alias in connections:
+            conn = connections[alias]
+            db_metrics[alias] = {
+                'vendor': conn.vendor,
+                'is_usable': conn.is_usable(),
+                'allow_thread_sharing': conn.allow_thread_sharing,
+                'settings': {
+                    k: v for k, v in conn.settings_dict.items() 
+                    if k not in ('PASSWORD', 'USER', 'NAME')  # Exclude sensitive info
+                }
+            }
+        return db_metrics
+    except Exception as e:
+        health_logger.error(f"Failed to gather database metrics: {str(e)}", exc_info=True)
+        return {}
+
 def check_database():
     """Thread-safe database check with connection reset on failure."""
     with db_lock:
         health_logger.debug(f'Database check started. Process ID: {os.getpid()}')
+        metrics = get_system_metrics()
+        db_metrics = get_database_metrics()
+        health_logger.debug(f'System metrics: {metrics}')
+        health_logger.debug(f'Database metrics: {db_metrics}')
+        
         try:
             health_logger.debug('Attempting database connection check')
-            # Get current connection state
             health_logger.debug(f'Connection state before check: {connection.connection is not None}')
             
+            # Track connection attempt timing
+            start_time = time.time()
             connection.ensure_connection()
+            ensure_time = time.time() - start_time
+            health_logger.debug(f'ensure_connection() took {ensure_time:.2f}s')
+            
             with connection.cursor() as cursor:
-                start_time = time.time()
+                query_start = time.time()
                 cursor.execute('SELECT 1')
                 cursor.fetchone()
-                query_time = time.time() - start_time
+                query_time = time.time() - query_start
                 health_logger.debug(f'Database query completed in {query_time:.2f}s')
+                
+                # Additional connection validation
+                cursor.execute('SELECT version()')
+                db_version = cursor.fetchone()[0]
+                health_logger.debug(f'Database version: {db_version}')
+                
                 return True, None
         except OperationalError as e:
+            error_context = {
+                'error_type': type(e).__name__,
+                'error_message': str(e),
+                'connection_params': connection.get_connection_params(),
+                'system_metrics': metrics,
+                'db_metrics': db_metrics
+            }
             health_logger.warning(
-                f'Initial database check failed: {str(e)}. '
-                f'Connection info: {connection.get_connection_params()}. '
-                'Attempting retry...'
+                'Initial database check failed. Context: %(context)s',
+                {'context': json.dumps(error_context, indent=2)}
             )
+            
             try:
                 health_logger.debug('Closing existing connection...')
                 connection.close()
+                close_time = time.time()
                 health_logger.debug('Establishing new connection...')
                 connection.connect()
+                connect_time = time.time() - close_time
+                health_logger.debug(f'New connection established in {connect_time:.2f}s')
+                
                 with connection.cursor() as cursor:
-                    start_time = time.time()
+                    retry_start = time.time()
                     cursor.execute('SELECT 1')
                     cursor.fetchone()
-                    query_time = time.time() - start_time
-                    health_logger.info(f'Database retry successful. Query time: {query_time:.2f}s')
+                    retry_time = time.time() - retry_start
+                    health_logger.info(f'Database retry successful. Query time: {retry_time:.2f}s')
                     return True, None
             except Exception as retry_error:
-                error_msg = (
-                    f"Database retry failed: {str(retry_error)}. "
-                    f"Connection params: {connection.get_connection_params()}"
-                )
+                retry_context = {
+                    'original_error': str(e),
+                    'retry_error': str(retry_error),
+                    'error_type': type(retry_error).__name__,
+                    'connection_params': connection.get_connection_params(),
+                    'system_metrics': metrics,
+                    'db_metrics': db_metrics
+                }
+                error_msg = f"Database retry failed. Context: {json.dumps(retry_context, indent=2)}"
                 health_logger.error(error_msg, exc_info=True)
                 return False, error_msg
         except Exception as e:
-            error_msg = f"Database check failed: {str(e)}"
+            error_context = {
+                'error_type': type(e).__name__,
+                'error_message': str(e),
+                'system_metrics': metrics,
+                'db_metrics': db_metrics
+            }
+            error_msg = f"Database check failed. Context: {json.dumps(error_context, indent=2)}"
             health_logger.error(error_msg, exc_info=True)
             return False, error_msg
 
@@ -110,11 +200,22 @@ def health_check(request):
     uptime = int(current_time - STARTUP_TIME)
     process_id = os.getpid()
     
+    request_info = {
+        'remote_addr': request.META.get('REMOTE_ADDR'),
+        'user_agent': request.META.get('HTTP_USER_AGENT'),
+        'x_forwarded_for': request.META.get('HTTP_X_FORWARDED_FOR'),
+        'host': request.META.get('HTTP_HOST'),
+        'method': request.method,
+        'path': request.path,
+    }
+    
     health_logger.debug(
-        f'Health check request received. '
-        f'Process: {process_id}, '
-        f'Uptime: {uptime}s, '
-        f'Remote addr: {request.META.get("REMOTE_ADDR")}'
+        'Health check request received. Context: %(context)s',
+        {'context': json.dumps({
+            'process_id': process_id,
+            'uptime': uptime,
+            'request': request_info
+        }, indent=2)}
     )
     
     # During startup grace period, always return 200 OK
@@ -129,40 +230,69 @@ def health_check(request):
             'uptime': uptime,
             'grace_period_remaining': STARTUP_GRACE_PERIOD - uptime,
             'process_id': process_id,
-            'timestamp': datetime.datetime.now().isoformat()
+            'timestamp': datetime.datetime.now().isoformat(),
+            'system_metrics': get_system_metrics(),
+            'hostname': socket.gethostname()
         }
         response = JsonResponse(response_data)
         response.status_code = 200
         return response
     
-    # After grace period, check database
+    # After grace period, check all systems
     start_time = time.time()
-    db_healthy, error_msg = check_database()
-    check_duration = time.time() - start_time
+    
+    # Check Redis first
+    redis_healthy, redis_error = check_redis_connection()
+    redis_check_time = time.time() - start_time
+    
+    # Then check database
+    db_start_time = time.time()
+    db_healthy, db_error = check_database()
+    db_check_time = time.time() - db_start_time
+    
+    # Get system metrics
+    system_metrics = get_system_metrics()
+    
+    total_check_duration = time.time() - start_time
     
     response_data = {
-        'status': 'healthy' if db_healthy else 'unhealthy',
+        'status': 'healthy' if (db_healthy and redis_healthy) else 'unhealthy',
         'uptime': uptime,
         'process_id': process_id,
-        'check_duration': f'{check_duration:.2f}s',
-        'timestamp': datetime.datetime.now().isoformat()
+        'check_duration': f'{total_check_duration:.2f}s',
+        'checks': {
+            'database': {
+                'healthy': db_healthy,
+                'duration': f'{db_check_time:.2f}s',
+                'error': db_error if not db_healthy else None
+            },
+            'redis': {
+                'healthy': redis_healthy,
+                'duration': f'{redis_check_time:.2f}s',
+                'error': redis_error if not redis_healthy else None
+            }
+        },
+        'system_metrics': system_metrics,
+        'timestamp': datetime.datetime.now().isoformat(),
+        'hostname': socket.gethostname()
     }
     
-    if not db_healthy:
-        response_data['error'] = error_msg
+    if not (db_healthy and redis_healthy):
         health_logger.error(
-            f'Health check failed. '
-            f'Duration: {check_duration:.2f}s, '
-            f'Error: {error_msg}'
+            'Health check failed. Context: %(context)s',
+            {'context': json.dumps(response_data, indent=2)}
         )
         response = JsonResponse(response_data)
         response.status_code = 503
         return response
     
     health_logger.info(
-        f'Health check successful. '
-        f'Duration: {check_duration:.2f}s, '
-        f'Process: {process_id}'
+        'Health check successful. Context: %(context)s',
+        {'context': json.dumps({
+            'duration': total_check_duration,
+            'process_id': process_id,
+            'system_metrics': system_metrics
+        }, indent=2)}
     )
     response = JsonResponse(response_data)
     response.status_code = 200
