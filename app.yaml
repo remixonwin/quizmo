@@ -9,8 +9,7 @@ databases:
 - engine: REDIS
   name: redis-cache
   version: "6"
-  production: true
-  size: db-s-1vcpu-1gb
+  size: db-s-dev-database
   num_nodes: 1
   cluster_name: quizmo-cache-cluster
 services:
