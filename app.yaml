@@ -6,6 +6,12 @@ databases:
   version: "12"
   size: db-s-dev-database
   num_nodes: 1
+- engine: REDIS
+  name: redis-cache
+  version: "6"
+  production: true
+  cluster_size: db-s-1vcpu-1gb
+  num_nodes: 1
 services:
 - name: web
   instance_count: 1
@@ -78,12 +84,6 @@ services:
       preserve_path_prefix: true
     - path: /static
       preserve_path_prefix: true
-databases:
-- engine: REDIS
-  name: redis-cache
-  version: "6"
-  size: db-s-dev-database
-  num_nodes: 1
 domains:
 - domain: quizmo.me
   type: PRIMARY
