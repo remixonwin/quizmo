@@ -9,6 +9,7 @@ from django.views.static import serve
 from django.urls import re_path
 from quiz import views
 from django.contrib.auth import views as auth_views
+from django.http import HttpResponse
 
 # Customize admin site
 admin.site.site_header = 'Quiz Administration'
@@ -17,15 +18,19 @@ admin.site.index_title = 'Quiz Management'
 admin.site.site_url = None  # Removes "View Site" link
 
 # Use a non-obvious admin URL and remove it from admin documentation
+def health_check(request):
+    return HttpResponse("OK", content_type="text/plain")
+
 urlpatterns = [
     path('quiz-management-portal/', admin.site.urls),
     path('', include('quiz.urls')),
     path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(next_page='quiz:home'), name='logout'),
+    path('health/', health_check, name='health_check'),
     re_path(r'^media/(?P<path>.*)$', serve, {
         'document_root': settings.MEDIA_ROOT,
     }),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
