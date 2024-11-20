@@ -6,13 +6,6 @@ databases:
   version: "15"
   size: db-s-dev-database
   num_nodes: 1
-- engine: REDIS
-  name: redis-cache
-  version: "6"
-  production: true
-  size: db-s-1vcpu-1gb
-  num_nodes: 1
-  cluster_name: quizmo-redis-prod
 services:
 - name: web
   instance_count: 1
@@ -55,7 +48,7 @@ services:
       value: "django_redis.cache.RedisCache"
     - key: CACHE_LOCATION
       scope: RUN_AND_BUILD_TIME
-      value: ${redis-cache.DATABASE_URL}
+      value: ${redis.DATABASE_URL}
     - key: SECURE_SSL_REDIRECT
       scope: RUN_AND_BUILD_TIME
       value: "True"
@@ -70,6 +63,16 @@ services:
       preserve_path_prefix: true
     - path: /static
       preserve_path_prefix: true
+- name: redis
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  image:
+    registry_type: DOCKER_HUB
+    repository: redis
+    tag: 6-alpine
+  http_port: 6379
+  internal_ports:
+    - 6379
 domains:
 - domain: quizmo.me
   type: PRIMARY
