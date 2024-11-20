@@ -4,7 +4,7 @@ import logging
 import threading
 import json
 import datetime
-import timedelta
+from datetime import timedelta
 
 # Django imports
 from django.shortcuts import render, get_object_or_404, redirect
@@ -23,7 +23,7 @@ from django.core.exceptions import PermissionDenied
 from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
 from django.views.decorators.cache import cache_page, never_cache
-from django.db import transaction, connections, OperationalError
+from django.db import transaction, connections, connection, OperationalError
 from django.views.decorators.vary import vary_on_cookie
 from redis.exceptions import RedisError
 from django.views.decorators.http import require_GET
@@ -54,25 +54,32 @@ def check_database():
     """Thread-safe database check with connection reset on failure."""
     with db_lock:
         try:
-            connection.ensure_connection()  # Ensure we have a connection
+            # Log attempt to check database
+            health_logger.debug('Attempting database connection check')
+            connection.ensure_connection()
             with connection.cursor() as cursor:
                 cursor.execute('SELECT 1')
                 cursor.fetchone()
+                health_logger.debug('Database check successful')
                 return True, None
         except OperationalError as e:
+            health_logger.warning(f'Initial database check failed: {str(e)}. Attempting retry...')
             try:
-                # Close any stale connection
                 connection.close()
-                # Try one more time with a fresh connection
                 connection.connect()
                 with connection.cursor() as cursor:
                     cursor.execute('SELECT 1')
                     cursor.fetchone()
+                    health_logger.info('Database retry successful')
                     return True, None
             except Exception as retry_error:
-                return False, f"Database retry failed: {str(retry_error)}"
+                error_msg = f"Database retry failed: {str(retry_error)}"
+                health_logger.error(error_msg)
+                return False, error_msg
         except Exception as e:
-            return False, f"Database check failed: {str(e)}"
+            error_msg = f"Database check failed: {str(e)}"
+            health_logger.error(error_msg)
+            return False, error_msg
 
 @never_cache
 @require_GET
