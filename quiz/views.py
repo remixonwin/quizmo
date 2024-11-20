@@ -410,13 +410,11 @@ def help_page(request):
 def health_check(request):
     """
     Health check endpoint for monitoring system status.
-    Checks database and cache connections.
+    Currently only checks database connection.
     """
     status = {
         'database': True,
-        'cache': True,
-        'status': 'healthy',
-        'startup_grace_period': True  # Indicate we're in startup grace period
+        'status': 'healthy'
     }
     
     # Check database connection
@@ -429,31 +427,8 @@ def health_check(request):
         status['status'] = 'unhealthy'
         logging.error(f'Database health check failed: {e}')
 
-    # Check cache connection, but don't fail health check during startup
-    try:
-        cache.set('health_check', 'OK', 1)
-        result = cache.get('health_check')
-        if result != 'OK':
-            status['cache'] = False
-            status['cache_error'] = f'Cache write/read check failed. Expected "OK", got "{result}"'
-            # Don't set unhealthy during startup
-            logging.warning(f'Cache health check warning: {status["cache_error"]}')
-    except RedisError as e:
-        status['cache'] = False
-        status['cache_error'] = str(e)
-        # Don't set unhealthy during startup
-        logging.warning(f'Redis health check warning: {e}')
-    except Exception as e:
-        status['cache'] = False
-        status['cache_error'] = str(e)
-        # Don't set unhealthy during startup
-        logging.warning(f'Cache health check warning: {e}')
-
-    # During startup, only fail if database is down
-    if status['startup_grace_period']:
-        response_code = 200 if status['database'] else 503
-    else:
-        response_code = 200 if status['status'] == 'healthy' else 503
+    # Set response code based on database status
+    response_code = 200 if status['database'] else 503
 
     # Return detailed status
     response = JsonResponse(status)
