@@ -19,11 +19,38 @@ Import-Module "$modulesPath\Rollback.psm1" -Force
 function Test-Environment {
     Write-Host "Validating environment..." -ForegroundColor Yellow
     
-    # Check if doctl is installed
+    # Check for DO_PAT environment variable
+    if (-not $env:DO_PAT) {
+        Write-Error "DO_PAT environment variable not set. Please set your DigitalOcean Personal Access Token."
+        exit 1
+    }
+    
+    # Check if doctl is installed and in PATH
     $doctlPath = Get-Command doctl -ErrorAction SilentlyContinue
     if (-not $doctlPath) {
         Write-Host "doctl not found. Installing..." -ForegroundColor Yellow
         Install-Doctl
+        
+        # Add doctl to PATH for current session
+        $env:PATH = "$PSScriptRoot;$env:PATH"
+        
+        # Verify installation
+        $doctlPath = Get-Command doctl -ErrorAction SilentlyContinue
+        if (-not $doctlPath) {
+            Write-Error "Failed to install doctl or add it to PATH"
+            exit 1
+        }
+    }
+    
+    # Verify doctl auth
+    $authStatus = & doctl auth list 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Authenticating with DigitalOcean..."
+        & doctl auth init -t $env:DO_PAT
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to authenticate with DigitalOcean"
+            exit 1
+        }
     }
 }
 
@@ -36,7 +63,7 @@ function Install-Doctl {
     
     try {
         Invoke-WebRequest -Uri $url -OutFile $output
-        Expand-Archive -Path $output -DestinationPath . -Force
+        Expand-Archive -Path $output -DestinationPath $PSScriptRoot -Force
         if (Test-Path $output) {
             Remove-Item $output -Force
         }
@@ -45,10 +72,6 @@ function Install-Doctl {
         Write-Error "Failed to install doctl: $_"
         exit 1
     }
-    
-    # Configure doctl with API token
-    Write-Host "Configuring doctl with API token..."
-    & doctl auth init -t $env:DO_PAT
 }
 
 # Function to create and configure app
@@ -57,15 +80,17 @@ function New-DigitalOceanApp {
     
     try {
         # Check if app exists
-        $app = & doctl apps list --format ID,Spec.Name --no-header | Where-Object { $_ -match $APP_NAME }
+        $apps = & doctl apps list --format ID,Spec.Name --no-header
+        $app = $apps | Where-Object { $_ -match $APP_NAME }
         
         if ($app) {
+            $appId = ($app -split '\s+')[0]
             Write-Host "Updating existing app..."
-            & doctl apps update $app.Split()[0] --spec app.yaml
+            & doctl apps update $appId --spec app.yaml --wait
         }
         else {
             Write-Host "Creating new app..."
-            & doctl apps create --spec app.yaml
+            & doctl apps create --spec app.yaml --wait
         }
         
         if ($LASTEXITCODE -ne 0) {
@@ -78,24 +103,33 @@ function New-DigitalOceanApp {
     }
 }
 
-# Function to configure domain
+# Function to configure domain and wait for deployment
 function Set-AppDomain {
     Write-Host "Configuring domain..." -ForegroundColor Yellow
     
     try {
-        $app = & doctl apps list --format ID,Spec.Name --no-header | Where-Object { $_ -match $APP_NAME }
+        $apps = & doctl apps list --format ID,Spec.Name --no-header
+        $app = $apps | Where-Object { $_ -match $APP_NAME }
         if (-not $app) {
             throw "App not found"
         }
         
-        $appId = $app.Split()[0]
-        & doctl apps create-deployment $appId
+        $appId = ($app -split '\s+')[0]
+        $deployment = & doctl apps create-deployment $appId --wait
+        
+        if ($LASTEXITCODE -ne 0) {
+            throw "Deployment failed"
+        }
         
         Write-Host "Waiting for deployment to complete..."
-        Start-Sleep -Seconds 30
+        do {
+            Start-Sleep -Seconds 10
+            $status = & doctl apps get-deployment $appId $deployment.ID --format Progress,Phase --no-header
+            Write-Host "Deployment status: $status"
+        } while ($status -notmatch "100/100")
         
-        # Add domain
-        & doctl apps update $appId --spec app.yaml
+        # Update app spec with domain
+        & doctl apps update $appId --spec app.yaml --wait
     }
     catch {
         Write-Error "Failed to configure domain: $_"
