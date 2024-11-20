@@ -12,7 +12,6 @@ databases:
   production: true
   size: db-s-1vcpu-1gb
   num_nodes: 1
-  eviction_policy: volatile-lru
 services:
 - name: web
   instance_count: 1
