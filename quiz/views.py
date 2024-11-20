@@ -1,29 +1,32 @@
+# Standard library imports
+import time
+import logging
+import threading
+import json
+import datetime
+import timedelta
+
+# Django imports
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import ListView, DetailView
 from django.db.models import Prefetch, Count, Q, F, Value, FloatField, Max
 from django.db.models.functions import Coalesce
-from .models import Quiz, Question, Choice, QuizAttempt
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
-from datetime import timedelta
-import json
-from django.http import JsonResponse, HttpResponse
-from django.views.decorators.http import require_POST
-from django.core.exceptions import PermissionDenied
 from django.contrib.auth.forms import UserCreationForm
 from django.urls import reverse_lazy
 from django import forms
-import logging
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.http import require_POST
+from django.core.exceptions import PermissionDenied
 from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
 from django.views.decorators.cache import cache_page, never_cache
-from django.db import transaction, connections
+from django.db import transaction, connections, OperationalError
 from django.views.decorators.vary import vary_on_cookie
 from redis.exceptions import RedisError
 from django.views.decorators.http import require_GET
-import time
-import threading
 
 # Configure logger
 browser_logger = logging.getLogger('browser_errors')
@@ -31,6 +34,89 @@ browser_logger.setLevel(logging.ERROR)
 file_handler = logging.FileHandler('browser-errors.log')
 file_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
 browser_logger.addHandler(file_handler)
+
+# Configure logging for health checks
+health_logger = logging.getLogger('health_checks')
+health_logger.setLevel(logging.INFO)
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(message)s'))
+health_logger.addHandler(handler)
+
+# Track application startup time - ensure this is module level
+STARTUP_TIME = time.time()
+STARTUP_GRACE_PERIOD = 90  # seconds
+DB_TIMEOUT = 5  # seconds
+
+# Lock for thread-safe database operations
+db_lock = threading.Lock()
+
+def check_database():
+    """Thread-safe database check with connection reset on failure."""
+    with db_lock:
+        try:
+            connection.ensure_connection()  # Ensure we have a connection
+            with connection.cursor() as cursor:
+                cursor.execute('SELECT 1')
+                cursor.fetchone()
+                return True, None
+        except OperationalError as e:
+            try:
+                # Close any stale connection
+                connection.close()
+                # Try one more time with a fresh connection
+                connection.connect()
+                with connection.cursor() as cursor:
+                    cursor.execute('SELECT 1')
+                    cursor.fetchone()
+                    return True, None
+            except Exception as retry_error:
+                return False, f"Database retry failed: {str(retry_error)}"
+        except Exception as e:
+            return False, f"Database check failed: {str(e)}"
+
+@never_cache
+@require_GET
+def health_check(request):
+    """
+    Health check endpoint for monitoring system status.
+    Implements startup state handling and graceful database checks.
+    """
+    current_time = time.time()
+    uptime = int(current_time - STARTUP_TIME)
+    
+    # During startup grace period, always return 200 OK
+    if uptime < STARTUP_GRACE_PERIOD:
+        health_logger.info(f'Health check during startup grace period (uptime: {uptime}s)')
+        response_data = {
+            'status': 'starting',
+            'message': 'Application is starting up',
+            'uptime': uptime,
+            'grace_period_remaining': STARTUP_GRACE_PERIOD - uptime
+        }
+        response = JsonResponse(response_data)
+        response.status_code = 200
+        return response
+    
+    # After grace period, check database
+    db_healthy, error_msg = check_database()
+    
+    status = {
+        'status': 'healthy' if db_healthy else 'unhealthy',
+        'database': db_healthy,
+        'uptime': uptime
+    }
+    
+    if not db_healthy:
+        status['error'] = error_msg
+        health_logger.error(f'Health check failed (uptime: {uptime}s): {error_msg}')
+        response = JsonResponse(status)
+        response.status_code = 503
+        return response
+    
+    health_logger.info(f'Health check successful (uptime: {uptime}s)')
+    response = JsonResponse(status)
+    response.status_code = 200
+    return response
 
 class CustomUserCreationForm(UserCreationForm):
     username = forms.CharField(
@@ -406,79 +492,3 @@ def preview_page(request):
 def help_page(request):
     """View for the help page."""
     return render(request, 'quiz/help.html')
-
-import time
-import logging
-import threading
-from django.conf import settings
-from django.http import JsonResponse
-from django.views.decorators.cache import never_cache
-from django.views.decorators.http import require_GET
-from django.db import connection, OperationalError
-
-# Track application startup time
-STARTUP_TIME = time.time()
-STARTUP_GRACE_PERIOD = 90  # seconds
-
-# Lock for thread-safe database operations
-db_lock = threading.Lock()
-
-def check_database():
-    """Thread-safe database check with connection reset on failure."""
-    with db_lock:
-        try:
-            # Try to use existing connection
-            with connection.cursor() as cursor:
-                cursor.execute('SELECT 1')
-                cursor.fetchone()
-                return True, None
-        except OperationalError as e:
-            try:
-                # Close any stale connection
-                connection.close()
-                # Try one more time with a fresh connection
-                with connection.cursor() as cursor:
-                    cursor.execute('SELECT 1')
-                    cursor.fetchone()
-                    return True, None
-            except Exception as retry_error:
-                return False, str(retry_error)
-        except Exception as e:
-            return False, str(e)
-
-@never_cache
-@require_GET
-def health_check(request):
-    """
-    Health check endpoint for monitoring system status.
-    Implements startup state handling and graceful database checks.
-    """
-    current_time = time.time()
-    uptime = int(current_time - STARTUP_TIME)
-    
-    # During startup grace period, return 200 OK
-    if uptime < STARTUP_GRACE_PERIOD:
-        logging.info(f'Health check during startup grace period (uptime: {uptime}s)')
-        return JsonResponse({
-            'status': 'starting',
-            'message': 'Application is starting up',
-            'uptime': uptime,
-            'grace_period_remaining': STARTUP_GRACE_PERIOD - uptime
-        }, status=200)
-    
-    # Check database connection with retry logic
-    db_healthy, error_msg = check_database()
-    
-    status = {
-        'status': 'healthy' if db_healthy else 'unhealthy',
-        'database': db_healthy,
-        'uptime': uptime
-    }
-    
-    if not db_healthy:
-        status['error'] = error_msg
-        logging.error(f'Health check failed (uptime: {uptime}s): {error_msg}')
-        return JsonResponse(status, status=503)
-    
-    logging.info(f'Health check successful (uptime: {uptime}s)')
-    return JsonResponse(status, status=200)
