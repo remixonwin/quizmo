@@ -19,12 +19,12 @@ services:
     failure_threshold: 3
     timeout_seconds: 10
   resources:
-    requests:
-      cpu: 200m
-      memory: 512Mi
-    limits:
-      cpu: 400m
-      memory: 1Gi
+    cpu:
+      - amount: 200m
+        operator: Lt
+    memory:
+      - amount: 512Mi
+        operator: Lt
   envs:
     - key: PYTHONPATH
       scope: RUN_AND_BUILD_TIME
