@@ -412,18 +412,37 @@ def health_check(request):
     Health check endpoint for monitoring system status.
     Checks database and cache connections.
     """
+    status = {
+        'database': True,
+        'cache': True,
+        'status': 'healthy'
+    }
+    
     # Check database connection
     try:
         connections['default'].cursor()
-    except Exception:
-        return HttpResponse('Database unavailable', status=503)
+    except Exception as e:
+        status['database'] = False
+        status['database_error'] = str(e)
+        status['status'] = 'unhealthy'
 
     # Check cache connection
     try:
         cache.set('health_check', 'OK', 1)
         if cache.get('health_check') != 'OK':
-            return HttpResponse('Cache check failed', status=503)
-    except RedisError:
-        return HttpResponse('Cache unavailable', status=503)
+            status['cache'] = False
+            status['cache_error'] = 'Cache write/read check failed'
+            status['status'] = 'unhealthy'
+    except RedisError as e:
+        status['cache'] = False
+        status['cache_error'] = str(e)
+        status['status'] = 'unhealthy'
+    except Exception as e:
+        status['cache'] = False
+        status['cache_error'] = str(e)
+        status['status'] = 'unhealthy'
 
-    return HttpResponse('OK', status=200)
+    # Return detailed status
+    response = JsonResponse(status)
+    response.status_code = 200 if status['status'] == 'healthy' else 503
+    return response
