@@ -1,5 +1,7 @@
 from django.utils.deprecation import MiddlewareMixin
 import re
+from django.middleware.security import SecurityMiddleware
+from django.http import HttpResponsePermanentRedirect
 
 class SecurityHeadersMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
@@ -43,3 +45,10 @@ class AdminAccessMiddleware(MiddlewareMixin):
             # allowed_ips = ['127.0.0.1', 'your.ip.address']
             # if ip not in allowed_ips:
             #     raise PermissionDenied
+
+class CustomSecurityMiddleware(SecurityMiddleware):
+    def process_request(self, request):
+        # Skip SSL redirect for health check endpoint
+        if request.path.rstrip('/') == '/health':
+            return None
+        return super().process_request(request)
