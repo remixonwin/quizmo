@@ -30,6 +30,10 @@ ALLOWED_HOSTS = [
     'mn-dmv-quiz-ci43y.ondigitalocean.app',
     'localhost',
     '127.0.0.1',
+    '10.244.29.208',  # Internal Kubernetes IP
+    '10.244.29.156',  # Internal Kubernetes probe IP
+    '[::1]',
+    '*',  # Temporarily allow all hosts for debugging
 ]
 
 # Application definition
