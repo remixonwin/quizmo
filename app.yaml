@@ -10,7 +10,7 @@ databases:
   name: redis-cache
   version: "6"
   production: true
-  cluster_size: db-s-1vcpu-1gb
+  size: db-s-1vcpu-1gb
   num_nodes: 1
 services:
 - name: web
