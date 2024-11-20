@@ -12,6 +12,7 @@ databases:
   production: true
   size: db-s-1vcpu-1gb
   num_nodes: 1
+  cluster_name: quizmo-cache-cluster
 services:
 - name: web
   instance_count: 1
