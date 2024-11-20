@@ -407,7 +407,11 @@ def help_page(request):
     return render(request, 'quiz/help.html')
 
 import time
+import logging
 from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_GET
 
 # Track application startup time
 STARTUP_TIME = time.time()
@@ -420,33 +424,40 @@ def health_check(request):
     Health check endpoint for monitoring system status.
     Implements startup state handling and graceful database checks.
     """
+    current_time = time.time()
+    uptime = int(current_time - STARTUP_TIME)
+    
     # During startup grace period, return 200 OK
-    if time.time() - STARTUP_TIME < STARTUP_GRACE_PERIOD:
+    if uptime < STARTUP_GRACE_PERIOD:
+        logging.info(f'Health check during startup grace period (uptime: {uptime}s)')
         return JsonResponse({
             'status': 'starting',
-            'message': 'Application is starting up'
+            'message': 'Application is starting up',
+            'uptime': uptime,
+            'grace_period_remaining': STARTUP_GRACE_PERIOD - uptime
         }, status=200)
     
     status = {
         'status': 'healthy',
         'database': True,
-        'uptime': int(time.time() - STARTUP_TIME)
+        'uptime': uptime
     }
     
     # Check database connection
     try:
-        # Use a shorter timeout for the database check
         from django.db import connection
         with connection.cursor() as cursor:
             cursor.execute('SELECT 1')
             cursor.fetchone()
+            logging.info(f'Health check successful (uptime: {uptime}s)')
     except Exception as e:
+        error_msg = str(e)
         status.update({
             'status': 'unhealthy',
             'database': False,
-            'error': str(e)
+            'error': error_msg
         })
-        logging.error(f'Health check database error: {e}')
+        logging.error(f'Health check failed (uptime: {uptime}s): {error_msg}')
         return JsonResponse(status, status=503)
 
     return JsonResponse(status, status=200)
