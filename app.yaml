@@ -9,9 +9,10 @@ databases:
 - engine: REDIS
   name: redis-cache
   version: "6"
-  size: db-s-dev-database
+  production: true
+  size: db-s-1vcpu-1gb
   num_nodes: 1
-  cluster_name: quizmo-cache-cluster
+  eviction_policy: volatile-lru
 services:
 - name: web
   instance_count: 1
@@ -64,21 +65,6 @@ services:
     - key: CSRF_COOKIE_SECURE
       scope: RUN_AND_BUILD_TIME
       value: "True"
-    - key: SECURE_HSTS_SECONDS
-      scope: RUN_AND_BUILD_TIME
-      value: "31536000"
-    - key: SECURE_HSTS_INCLUDE_SUBDOMAINS
-      scope: RUN_AND_BUILD_TIME
-      value: "True"
-    - key: SECURE_HSTS_PRELOAD
-      scope: RUN_AND_BUILD_TIME
-      value: "True"
-    - key: STATIC_URL
-      scope: RUN_AND_BUILD_TIME
-      value: "/static/"
-    - key: STATIC_ROOT
-      scope: RUN_AND_BUILD_TIME
-      value: "/app/staticfiles"
   routes:
     - path: /
       preserve_path_prefix: true
