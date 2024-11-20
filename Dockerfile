@@ -22,4 +22,4 @@ ENV DEBUG=0
 EXPOSE 8000
 
 # Run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "quiz.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "windsurf_app.wsgi:application"]
