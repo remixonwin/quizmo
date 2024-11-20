@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Live Preview Test{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Live Preview Test</h2>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Welcome to the Live Preview</h5>
+                    <p class="card-text">This page demonstrates that the live preview is working correctly.</p>
+                    <div class="alert alert-info">
+                        Current Time: <span id="current-time">Loading...</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="updateTime()">Update Time</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateTime() {
+    document.getElementById('current-time').textContent = new Date().toLocaleString();
+}
+
+// Update time every second
+setInterval(updateTime, 1000);
+// Initial update
+updateTime();
+</script>
+{% endblock %}

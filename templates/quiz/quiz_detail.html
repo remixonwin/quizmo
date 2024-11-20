@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ quiz.title }} - Minnesota DMV Practice Quiz{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                {% if quiz.image %}
+                    <img src="{{ quiz.image.url }}" class="card-img-top" alt="{{ quiz.title }}">
+                {% endif %}
+                <div class="card-body">
+                    <h1 class="card-title">{{ quiz.title }}</h1>
+                    <p class="card-text">{{ quiz.description }}</p>
+                    
+                    <div class="quiz-stats text-muted mb-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Questions:</strong> {{ quiz.questions.count }}</p>
+                                <p><strong>Time Limit:</strong> {{ quiz.time_limit }} minutes</p>
+                            </div>
+                            <div class="col-md-6">
+                                {% if user.is_authenticated %}
+                                    <p><strong>Your Best Score:</strong> {{ best_score }}%</p>
+                                    <p><strong>Attempts:</strong> {{ attempts_count }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="quiz-instructions mb-4">
+                        <h4>Instructions</h4>
+                        <ul>
+                            <li>You have {{ quiz.time_limit }} minutes to complete the quiz</li>
+                            <li>Each question has only one correct answer</li>
+                            <li>You can't go back to previous questions</li>
+                            <li>Results will be shown immediately after completion</li>
+                        </ul>
+                    </div>
+
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'quiz:take_quiz' quiz.id %}" class="btn btn-primary btn-lg">Start Quiz</a>
+                    {% else %}
+                        <div class="alert alert-info">
+                            Please <a href="{% url 'login' %}">login</a> or <a href="{% url 'quiz:register' %}">register</a> to take this quiz.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

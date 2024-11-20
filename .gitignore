@@ -1,0 +1,65 @@
+# Configuration files
+config.json
+config.*.json
+!config.example.json
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env
+.env.*
+
+# Deployment state
+state/
+*.state
+
+# PowerShell
+*.ps1.config
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# IDE files
+.vscode/
+.idea/
+*.suo
+*.user
+*.sln.docstates
+
+# Certificates and keys
+*.pfx
+*.key
+*.crt
+*.pem
+
+# Dependency directories
+packages/
+node_modules/
+
+# Build output
+dist/
+build/
+out/
+
+# Debug files
+*.debug
+*.dbg
+
+# Test files
+test-results/
+coverage/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Sensitive information
+*secret*
+*password*
+*credential*
+*.token
+*.key

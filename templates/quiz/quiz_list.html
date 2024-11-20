@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Practice Tests - Minnesota DMV Practice Quiz{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Minnesota DMV Practice Tests</h1>
+    
+    <div class="row">
+        {% for quiz in quizzes %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                {% if quiz.image %}
+                    <img src="{{ quiz.image.url }}" class="card-img-top" alt="{{ quiz.title }}">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ quiz.title }}</h5>
+                    <p class="card-text">{{ quiz.description }}</p>
+                    <div class="quiz-stats small text-muted mb-3">
+                        <div>Questions: {{ quiz.question_count }}</div>
+                        {% if user.is_authenticated %}
+                            <div>Your Attempts: {{ quiz.user_attempts }}</div>
+                            <div>Best Score: {{ quiz.best_score }}%</div>
+                        {% endif %}
+                        <div>Total Attempts: {{ quiz.total_attempts }}</div>
+                    </div>
+                    <a href="{% url 'quiz:take_quiz' quiz.id %}" class="btn btn-primary">Start Quiz</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                No practice tests available at the moment. Please check back later.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">&laquo; First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

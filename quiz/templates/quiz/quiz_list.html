@@ -1,0 +1,165 @@
+{% extends 'quiz/base.html' %}
+
+{% block title %}Minnesota DMV Practice Quizzes{% endblock %}
+
+{% block content %}
+<div class="row mb-5">
+    <div class="col-lg-8 mx-auto text-center">
+        <h1 class="display-4 mb-4">Minnesota DMV Practice Tests</h1>
+        <p class="lead text-muted mb-4">Prepare for your driver's license test with our comprehensive practice quizzes. We help you master both traffic rules and road signs.</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="#quizzes" class="btn btn-primary">
+                <i class="fas fa-play me-2"></i>Start Practice
+            </a>
+            <a href="{% url 'quiz:help' %}" class="btn btn-outline-primary">
+                <i class="fas fa-info-circle me-2"></i>Learn More
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-5" id="about">
+    <div class="col-lg-10 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h4 class="card-title mb-4">About the Test</h4>
+                        <ul class="list-unstyled">
+                            <li class="mb-3">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                40 multiple-choice questions
+                            </li>
+                            <li class="mb-3">
+                                <i class="fas fa-image text-primary me-2"></i>
+                                10 questions with traffic sign images
+                            </li>
+                            <li class="mb-3">
+                                <i class="fas fa-trophy text-warning me-2"></i>
+                                Need 32 correct answers (80%) to pass
+                            </li>
+                            <li class="mb-3">
+                                <i class="fas fa-infinity text-info me-2"></i>
+                                Unlimited attempts available
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="progress mb-4" style="height: 10px;">
+                            <div class="progress-bar" role="progressbar" style="width: 80%;" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <p class="text-muted small text-center">Required passing score: 80%</p>
+                        <div class="d-flex justify-content-around text-center mt-4">
+                            <div>
+                                <i class="fas fa-clock fa-2x text-primary mb-2"></i>
+                                <h5 class="mb-0">60 min</h5>
+                                <small class="text-muted">Time Limit</small>
+                            </div>
+                            <div>
+                                <i class="fas fa-redo fa-2x text-success mb-2"></i>
+                                <h5 class="mb-0">∞</h5>
+                                <small class="text-muted">Retakes</small>
+                            </div>
+                            <div>
+                                <i class="fas fa-mobile-alt fa-2x text-info mb-2"></i>
+                                <h5 class="mb-0">Any Device</h5>
+                                <small class="text-muted">Access</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="quizzes" class="mb-5">
+    <h2 class="text-center mb-4">Available Practice Tests</h2>
+    {% if quizzes %}
+        <div class="row">
+            {% for quiz in quizzes %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="badge bg-primary rounded-pill">Test #{{ forloop.counter }}</span>
+                                <small class="text-muted">{{ quiz.created_at|date:"M d, Y" }}</small>
+                            </div>
+                            <h5 class="card-title mb-3">{{ quiz.title }}</h5>
+                            <p class="card-text text-muted">{{ quiz.description|truncatewords:30 }}</p>
+                            <div class="mt-4">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="small text-muted">
+                                        <i class="fas fa-question-circle me-1"></i>
+                                        40 Questions
+                                    </div>
+                                    <a href="{% url 'take_quiz' quiz.id %}" class="btn btn-primary">
+                                        Start Quiz
+                                        <i class="fas fa-arrow-right ms-2"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-5 text-center">
+                <i class="fas fa-exclamation-circle fa-3x text-warning mb-3"></i>
+                <h4>No Quizzes Available</h4>
+                <p class="text-muted mb-0">Please check back later for new practice tests.</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<div class="row mb-5" id="contact">
+    <div class="col-lg-8 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h4 class="card-title text-center mb-4">Study Tips</h4>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-book text-primary fa-2x me-3"></i>
+                            <div>
+                                <h5>Review the Manual</h5>
+                                <p class="text-muted">Start by thoroughly reading the Minnesota Driver's Manual. It contains all the information you need to know.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-pencil-alt text-success fa-2x me-3"></i>
+                            <div>
+                                <h5>Take Notes</h5>
+                                <p class="text-muted">Write down important rules, signs, and regulations. Active note-taking improves retention.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-clock text-warning fa-2x me-3"></i>
+                            <div>
+                                <h5>Practice Regularly</h5>
+                                <p class="text-muted">Set aside time each day to take practice tests. Consistency is key to success.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-chart-line text-info fa-2x me-3"></i>
+                            <div>
+                                <h5>Track Progress</h5>
+                                <p class="text-muted">Monitor your scores and focus on areas that need improvement.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

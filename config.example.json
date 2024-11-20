@@ -1,0 +1,35 @@
+{
+    "DO_API_TOKEN": "your_digitalocean_api_token",
+    "DOMAIN_NAME": "your.domain.name",
+    "APP_NAME": "mn-dmv-quiz",
+    "REGION": "nyc",
+    "ENVIRONMENT": "production",
+    "INSTANCE_SIZE": "basic-xs",
+    "INSTANCE_COUNT": 1,
+    "HTTP_PORT": 8000,
+    "DB_VERSION": "12",
+    "DB_SIZE": "db-s-dev-database",
+    "DB_NODES": 1,
+    "BACKUP_HOUR": 1,
+    "BACKUP_MINUTE": 0,
+    "BACKUP_RETENTION_DAYS": 7,
+    "MONITORING": {
+        "CPU_THRESHOLD": 80,
+        "MEMORY_THRESHOLD": 80,
+        "DISK_THRESHOLD": 80,
+        "RESPONSE_TIME_THRESHOLD": 2000
+    },
+    "SECURITY": {
+        "SSL_ENFORCE": true,
+        "AUTO_DEPLOY": true,
+        "ALLOWED_HOSTS": [
+            "your.domain.name",
+            ".digitalocean.app"
+        ]
+    },
+    "HEALTH_CHECK": {
+        "PATH": "/health/",
+        "INITIAL_DELAY": 30,
+        "CHECK_PERIOD": 60
+    }
+}

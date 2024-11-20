@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Error Logging{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Test Error Logging</h1>
+    <p>Click the buttons below to test different types of errors:</p>
+
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Runtime Error</h5>
+                    <p class="card-text">Triggers a JavaScript runtime error.</p>
+                    <button class="btn btn-danger" onclick="triggerRuntimeError()">Test Runtime Error</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Promise Rejection</h5>
+                    <p class="card-text">Triggers an unhandled promise rejection.</p>
+                    <button class="btn btn-warning" onclick="triggerPromiseError()">Test Promise Error</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Network Error</h5>
+                    <p class="card-text">Triggers a network request error.</p>
+                    <button class="btn btn-info" onclick="triggerNetworkError()">Test Network Error</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function triggerRuntimeError() {
+        // Trigger a runtime error
+        const obj = null;
+        obj.nonexistentMethod();
+    }
+
+    function triggerPromiseError() {
+        // Trigger an unhandled promise rejection
+        new Promise((resolve, reject) => {
+            reject(new Error('Test Promise Rejection'));
+        });
+    }
+
+    function triggerNetworkError() {
+        // Trigger a network error
+        fetch('https://nonexistent-domain-12345.com')
+            .then(response => response.json());
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,186 @@
+{% extends 'quiz/base.html' %}
+
+{% block title %}Help - Minnesota DMV Practice Test{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Help Center</h1>
+    
+    <div class="row">
+        <!-- Quick Start Guide -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">Quick Start Guide</h2>
+                </div>
+                <div class="card-body">
+                    <ol class="list-unstyled">
+                        <li class="mb-3">
+                            <strong>1. Register/Login</strong>
+                            <p class="small text-muted">Create an account or login to track your progress.</p>
+                        </li>
+                        <li class="mb-3">
+                            <strong>2. Choose a Quiz</strong>
+                            <p class="small text-muted">Select from available practice tests on the home page.</p>
+                        </li>
+                        <li class="mb-3">
+                            <strong>3. Take the Quiz</strong>
+                            <p class="small text-muted">Answer questions within the time limit.</p>
+                        </li>
+                        <li>
+                            <strong>4. Review Results</strong>
+                            <p class="small text-muted">See your score and review correct answers.</p>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">Frequently Asked Questions</h2>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    How do I create an account?
+                                </button>
+                            </h3>
+                            <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Click the "Register" link in the navigation menu. Fill in your username, email (optional), and password.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                    How are quizzes scored?
+                                </button>
+                            </h3>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Each question is worth one point. Your final score is calculated as a percentage of correct answers.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                    Is there a time limit?
+                                </button>
+                            </h3>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Yes, each quiz has a specific time limit. The remaining time is displayed during the quiz.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips & Support -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">Tips & Support</h2>
+                </div>
+                <div class="card-body">
+                    <h3 class="h6 mb-3">Study Tips</h3>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">✓ Review incorrect answers after each quiz</li>
+                        <li class="mb-2">✓ Take practice tests regularly</li>
+                        <li class="mb-2">✓ Read questions carefully</li>
+                        <li class="mb-2">✓ Don't rush your answers</li>
+                    </ul>
+                    
+                    <h3 class="h6 mb-3 mt-4">Need More Help?</h3>
+                    <p class="small text-muted">
+                        If you encounter any issues or have questions not covered here, please contact support at:
+                        <a href="mailto:support@mnpracticetest.com">support@mnpracticetest.com</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Resources -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">Additional Resources</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3 class="h6 mb-3">Official Minnesota DVS Resources</h3>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-external-link-alt me-2"></i>
+                                    <a href="https://drive.mn.gov/" target="_blank" rel="noopener noreferrer">
+                                        Minnesota Driver and Vehicle Services (DVS)
+                                    </a>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-external-link-alt me-2"></i>
+                                    <a href="https://dps.mn.gov/divisions/dvs/forms-documents/Documents/Minnesota_Drivers_Manual.pdf" target="_blank" rel="noopener noreferrer">
+                                        Minnesota Driver's Manual (PDF)
+                                    </a>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-external-link-alt me-2"></i>
+                                    <a href="https://onlineservices.dps.mn.gov/EServices/_/" target="_blank" rel="noopener noreferrer">
+                                        Schedule Your Actual Test
+                                    </a>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-external-link-alt me-2"></i>
+                                    <a href="https://dps.mn.gov/divisions/dvs/locations/Pages/find-office-locations.aspx" target="_blank" rel="noopener noreferrer">
+                                        Find DVS Office Locations
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h3 class="h6 mb-3">Study Materials</h3>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-book me-2"></i>
+                                    <a href="https://dps.mn.gov/divisions/dvs/forms-documents/Documents/Minnesota_Road_Signs.pdf" target="_blank" rel="noopener noreferrer">
+                                        Road Signs Guide (PDF)
+                                    </a>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-book me-2"></i>
+                                    <a href="https://dps.mn.gov/divisions/dvs/news/Pages/default.aspx" target="_blank" rel="noopener noreferrer">
+                                        Latest DVS Updates & News
+                                    </a>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-graduation-cap me-2"></i>
+                                    <a href="https://dps.mn.gov/divisions/dvs/forms-documents/Pages/drivers-manuals.aspx" target="_blank" rel="noopener noreferrer">
+                                        All Driver Manuals & Guides
+                                    </a>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-car me-2"></i>
+                                    <a href="https://dps.mn.gov/divisions/dvs/Pages/drivers-license-information.aspx" target="_blank" rel="noopener noreferrer">
+                                        License Requirements & Classes
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{
+    "timestamp": "20241119_210746",
+    "django_version": "5.1.3",
+    "python_version": "3.13",
+    "description": "Minnesota DMV Practice Quiz App - Post URL namespace fixes",
+    "backup_items": [
+        "manage.py",
+        "requirements.txt",
+        "quiz",
+        "templates",
+        "windsurf_app",
+        "static",
+        "media",
+        "DEPLOYMENT.md",
+        "README.md",
+        ".env",
+        ".env.example"
+    ]
+}

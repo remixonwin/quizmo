@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">Quiz Results</h2>
+        </div>
+        <div class="card-body">
+            <h3>{{ quiz.title }}</h3>
+            
+            <div class="result-summary mt-4">
+                <p class="h4">Your Score: {{ score }} out of {{ total_questions }}</p>
+                <p class="h5">Percentage: {{ percentage }}%</p>
+                
+                {% if passed %}
+                <div class="alert alert-success mt-3">
+                    <h4 class="alert-heading">Congratulations! You Passed! 🎉</h4>
+                    <p>You achieved the required score of {{ required_to_pass }} out of {{ total_questions }} questions correct.</p>
+                </div>
+                {% else %}
+                <div class="alert alert-danger mt-3">
+                    <h4 class="alert-heading">Not Passed</h4>
+                    <p>You need at least {{ required_to_pass }} correct answers to pass. Please review the material and try again.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="question-review mt-4">
+                <h4>Question Review:</h4>
+                {% for answer in user_answers %}
+                <div class="card mb-3 {% if answer.correct %}border-success{% else %}border-danger{% endif %}">
+                    <div class="card-body">
+                        {% if answer.question.image %}
+                        <img src="{{ answer.question.image.url }}" alt="Question Image" class="img-fluid mb-3" style="max-height: 200px;">
+                        {% endif %}
+                        <p class="card-text"><strong>Question {{ forloop.counter }}:</strong> {{ answer.question.text }}</p>
+                        <p class="card-text">
+                            Your answer: 
+                            <span class="{% if answer.correct %}text-success{% else %}text-danger{% endif %}">
+                                {% if answer.user_choice %}
+                                    {{ answer.user_choice.text }}
+                                {% else %}
+                                    No answer provided
+                                {% endif %}
+                            </span>
+                        </p>
+                        {% if not answer.correct %}
+                        <p class="card-text text-success">Correct answer: {{ answer.correct_choice.text }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="mt-4">
+                <a href="{% url 'quiz_list' %}" class="btn btn-primary">Back to Quiz List</a>
+                <a href="{% url 'take_quiz' quiz.id %}" class="btn btn-secondary">Try Again</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

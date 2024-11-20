@@ -1,0 +1,28 @@
+name: mn-dmv-quiz
+region: nyc
+services:
+- name: api
+  environment_slug: python
+  instance_size_slug: basic-xs
+  instance_count: 1
+  source_dir: /
+  dockerfile_path: Dockerfile
+  http_port: 8000
+  routes:
+    - path: /
+  envs:
+    - key: ENVIRONMENT
+      value: production
+    - key: ALLOWED_HOSTS
+      value: quizmo.me,.digitalocean.app
+    - key: DEBUG
+      value: "0"
+databases:
+- engine: PG
+  name: db
+  version: "15"
+  production: false
+domains:
+- domain: quizmo.me
+  type: PRIMARY
+  zone: quizmo.me
