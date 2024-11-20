@@ -28,6 +28,7 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '.ondigitalocean.app',
+    'mn-dmv-quiz-ci43y.ondigitalocean.app',
     'quizmo.me',
 ]
 
