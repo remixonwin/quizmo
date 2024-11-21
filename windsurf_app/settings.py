@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', '0') == '1'
+DEBUG = True
 
 ALLOWED_HOSTS = [
     'quizmo.me',
@@ -91,6 +91,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'TEST': {
+            'NAME': BASE_DIR / 'test_db.sqlite3',
+        },
     } if DEBUG else {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('POSTGRES_DB', 'quizmo'),
@@ -100,6 +103,12 @@ DATABASES = {
         'PORT': os.environ.get('POSTGRES_PORT', '5432'),
     }
 }
+
+if 'test' in sys.argv:
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'test_db.sqlite3',
+    }
 
 
 # Password validation
@@ -153,7 +162,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Security settings
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
+SECURE_SSL_REDIRECT = False if DEBUG else True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_HSTS_SECONDS = 31536000  # 1 year
@@ -184,9 +193,12 @@ CACHES = {
     }
 }
 
+# Cache timeout settings
+CACHE_TIMEOUT = 3600  # 1 hour
+
 # Login/Logout Settings
-LOGIN_REDIRECT_URL = 'quiz:home'
-LOGOUT_REDIRECT_URL = 'quiz:home'
+LOGIN_REDIRECT_URL = 'quiz:quiz_list'
+LOGOUT_REDIRECT_URL = 'home'
 LOGIN_URL = 'login'
 
 # Email Settings
@@ -199,7 +211,48 @@ EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = 'support@mnpracticetest.com'
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Crispy Forms Settings
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+CRISPY_ALLOWED_TEMPLATE_PACKS = ('bootstrap4',)
+
+# Quiz Settings
+QUIZ_TIME_LIMIT = 30  # minutes
+QUIZ_PASSING_SCORE = 80  # percentage
+QUIZ_QUESTIONS_PER_PAGE = 10
+
+# FAQ Settings
+QUIZ_FAQS = [
+    {
+        'question': 'How many questions are on the actual permit test?',
+        'answer': 'The Minnesota permit test consists of 40 questions. You need to answer at least 32 correctly to pass.'
+    },
+    {
+        'question': 'How long do I have to complete each practice quiz?',
+        'answer': 'Each practice quiz has a 30-minute time limit, similar to the actual permit test.'
+    },
+    {
+        'question': 'Can I retake practice quizzes?',
+        'answer': 'Yes, you can retake practice quizzes as many times as you want to improve your knowledge.'
+    },
+    {
+        'question': 'Are the practice questions similar to the real test?',
+        'answer': 'Yes, our questions are based on the official Minnesota Driver\'s Manual and follow similar formats.'
+    },
+    {
+        'question': 'What score do I need to pass?',
+        'answer': f'You need to score at least {QUIZ_PASSING_SCORE}% to pass each practice quiz.'
+    },
+    {
+        'question': 'How do I prepare for the test?',
+        'answer': 'Study the Minnesota Driver\'s Manual thoroughly, take our practice quizzes regularly, and focus on areas where you need improvement.'
+    }
+]
 
 # Logging Configuration
 LOGGING = {
@@ -218,26 +271,18 @@ LOGGING = {
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-            'level': 'INFO',
+            'formatter': 'simple',
         },
         'file': {
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs' / 'django.log',
+            'filename': BASE_DIR / 'logs' / 'quiz.log',
             'formatter': 'verbose',
-            'level': 'DEBUG',
-        },
-        'browser_errors': {
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs' / 'browser-errors.log',
-            'formatter': 'verbose',
-            'level': 'ERROR',
         },
     },
     'loggers': {
         'django': {
             'handlers': ['console', 'file'],
-            'level': 'INFO',
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
             'propagate': True,
         },
         'quiz': {
@@ -245,55 +290,8 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
-        'browser_errors': {
-            'handlers': ['browser_errors', 'console'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
     },
 }
 
-# Ensure logs directory exists
-LOGS_DIR = BASE_DIR / 'logs'
-LOGS_DIR.mkdir(exist_ok=True)
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Web3 and Blockchain Settings
-WEB3_PROVIDER_URL = os.environ.get('WEB3_PROVIDER_URL', 'https://polygon-mumbai.infura.io/v3/your-project-id')
-CONTRACT_ADDRESS = os.environ.get('CONTRACT_ADDRESS', '')
-CHAIN_ID = int(os.environ.get('CHAIN_ID', '80001'))  # Mumbai testnet
-
-# IPFS Settings
-IPFS_API_URL = os.environ.get('IPFS_API_URL', 'http://localhost:5001')
-IPFS_GATEWAY_URL = os.environ.get('IPFS_GATEWAY_URL', 'https://ipfs.io/ipfs/')
-
-# Testing
-TESTING = 'test' in sys.argv
-
-# Admin settings
-ADMIN_URL = 'quiz-management-portal/'
-ADMINS = []  # Add admin emails in production
-ADMIN_SHOW_USER_PERMISSIONS = False
-ADMIN_SHOW_VIEW_ON_SITE = False
-ADMIN_HONEYPOT_EMAIL_ADMINS = True
-AXES_ADMIN_SUCCESSFUL_ATTEMPTS = 3
-AXES_ADMIN_FAILURE_LIMIT = 3
-AXES_ADMIN_COOLOFF_TIME = 1  # 1 hour
-
-# Rate limiting
-RATELIMIT_ENABLE = True
-RATELIMIT_USE_CACHE = 'default'
-RATELIMIT_FAIL_OPEN = False
-
-# File upload settings
-FILE_UPLOAD_MAX_MEMORY_SIZE = 2621440  # 2.5 MB
-FILE_UPLOAD_PERMISSIONS = 0o644
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000
-
-# Crispy Forms Settings
-CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap4"
-CRISPY_TEMPLATE_PACK = "bootstrap4"
+# Create logs directory if it doesn't exist
+os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)

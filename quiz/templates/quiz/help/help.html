@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Help Center - Minnesota DMV Practice Test{% endblock %}
+
+{% block head %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{{ meta_description }}">
+    <style>
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-friendly {
+                page-break-inside: avoid;
+                margin-bottom: 1em;
+            }
+            .accordion-button::after {
+                display: none;
+            }
+            .accordion-collapse {
+                display: block !important;
+            }
+            .accordion-button {
+                border: none !important;
+                padding: 0 !important;
+                font-weight: bold;
+            }
+            .accordion-button.collapsed {
+                color: inherit !important;
+            }
+            .card {
+                border: none !important;
+                margin-bottom: 2em !important;
+            }
+            .card-header {
+                background: none !important;
+                border: none !important;
+                padding-left: 0 !important;
+            }
+            a[href]::after {
+                content: " (" attr(href) ")";
+                font-size: 90%;
+                color: #666;
+            }
+            .breadcrumb {
+                display: none;
+            }
+            body {
+                font-size: 12pt;
+                line-height: 1.4;
+            }
+            h1 {
+                font-size: 18pt;
+                margin-bottom: 1em;
+            }
+            h2 {
+                font-size: 16pt;
+                margin-bottom: 0.8em;
+            }
+            h3 {
+                font-size: 14pt;
+                margin-bottom: 0.6em;
+            }
+            p {
+                margin-bottom: 0.5em;
+            }
+            .container {
+                width: 100%;
+                max-width: none;
+                padding: 0;
+                margin: 0;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4" role="main">
+    <h1 class="mb-4">{{ page_title }}</h1>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-4 no-print">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'quiz:quiz_list' %}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-md-8">
+            <!-- Quick Start Guide -->
+            <div class="card mb-4 help-section print-friendly" id="quick_start">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Quick Start Guide</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for guide in quick_start %}
+                        <div class="col-12 col-md-6 mb-3">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                                <div>
+                                    <h3 class="h6 mb-1">{{ guide.title }}</h3>
+                                    <p class="mb-0">{{ guide.description }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Study Materials -->
+            <div class="card mb-4 help-section print-friendly" id="study_materials">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Study Materials</h2>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="https://dps.mn.gov/divisions/dvs/forms-documents/Documents/Minnesota_Drivers_Manual.pdf" 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h3 class="h6 mb-1">Minnesota Driver's Manual</h3>
+                            </div>
+                            <p class="mb-1">Official MN DVS driver's manual with all traffic laws and road regulations.</p>
+                        </a>
+                        <a href="{% url 'quiz:quiz_list' %}" 
+                           class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h3 class="h6 mb-1">Practice Tests</h3>
+                            </div>
+                            <p class="mb-1">Take our practice tests to prepare for your DMV exam.</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQs -->
+            <div class="card mb-4 help-section print-friendly" id="faqs">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Frequently Asked Questions</h2>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="helpFaqAccordion">
+                        {% for faq in faqs %}
+                        <div class="accordion-item">
+                            <h3 class="accordion-header" id="faq{{ forloop.counter }}">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#faqCollapse{{ forloop.counter }}" aria-expanded="false"
+                                    aria-controls="faqCollapse{{ forloop.counter }}" aria-label="{{ faq.question }}">
+                                    {{ faq.question }}
+                                </button>
+                            </h3>
+                            <div id="faqCollapse{{ forloop.counter }}" class="accordion-collapse collapse"
+                                data-bs-parent="#helpFaqAccordion">
+                                <div class="accordion-body">
+                                    {{ faq.answer }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Search -->
+            <div class="card mb-4 no-print">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Search Help</h2>
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{% url 'quiz:help' %}" class="search-form" role="search">
+                        <div class="input-group">
+                            <input type="search" name="search" class="form-control" placeholder="Search help topics..."
+                                value="{{ search_query }}" aria-label="Search help topics">
+                            <button type="submit" class="btn btn-primary" aria-label="Submit search">
+                                <i class="fas fa-search"></i>
+                                <span class="visually-hidden">Search</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="card mb-4 print-friendly">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Contact Support</h2>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <i class="fas fa-envelope me-2"></i>
+                        <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+                    </p>
+                    {% if support_phone %}
+                    <p class="mb-2">
+                        <i class="fas fa-phone me-2"></i>
+                        <a href="tel:{{ support_phone }}">{{ support_phone }}</a>
+                    </p>
+                    {% endif %}
+                    <p class="mb-0">We typically respond within 24 hours.</p>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="card mb-4 no-print">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Quick Links</h2>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <a href="{% url 'quiz:quiz_list' %}">
+                                <i class="fas fa-home me-2"></i>Home
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{% url 'quiz:practice' %}">
+                                <i class="fas fa-pencil-alt me-2"></i>Practice Tests
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'quiz:faq' %}">
+                                <i class="fas fa-question-circle me-2"></i>FAQ
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

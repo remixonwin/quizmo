@@ -105,20 +105,15 @@ class ChoiceModelTests(TestCase):
         self.assertEqual(str(self.choice), "Test Choice")
 
     def test_multiple_correct_choices(self):
-        """Test multiple correct choices for one question"""
+        """Test validation prevents multiple correct choices for one question"""
         # Create another correct choice
-        second_choice = Choice.objects.create(
-            question=self.question,
-            text="Second Choice",
-            is_correct=True
-        )
-        self.assertTrue(second_choice.is_correct)
-        # Verify both choices exist and are correct
-        correct_choices = Choice.objects.filter(
-            question=self.question,
-            is_correct=True
-        )
-        self.assertEqual(correct_choices.count(), 2)
+        with self.assertRaises(ValidationError):
+            second_choice = Choice.objects.create(
+                question=self.question,
+                text="Second Choice",
+                is_correct=True
+            )
+            self.question.clean()  # This should raise ValidationError
 
     def test_choice_without_question(self):
         """Test choice creation without question"""

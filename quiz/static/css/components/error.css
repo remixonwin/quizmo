@@ -1,0 +1,116 @@
+/**
+ * Error page styles
+ */
+
+@import '../base/variables.css';
+
+.error-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    text-align: center;
+    padding: var(--spacing-4);
+    background-color: var(--gray-100);
+}
+
+.error-content {
+    max-width: 600px;
+    padding: var(--spacing-4);
+    background-color: white;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--box-shadow);
+}
+
+.error-code {
+    font-size: 6rem;
+    color: var(--danger-color);
+    margin-bottom: var(--spacing-3);
+    font-weight: var(--font-weight-bold);
+    line-height: 1;
+}
+
+.error-title {
+    font-size: var(--font-size-lg);
+    color: var(--gray-800);
+    margin-bottom: var(--spacing-4);
+}
+
+.error-message {
+    color: var(--gray-600);
+    margin-bottom: var(--spacing-4);
+    font-size: var(--font-size-base);
+}
+
+.error-details {
+    font-family: var(--font-family-monospace);
+    font-size: var(--font-size-sm);
+    color: var(--gray-500);
+    margin-bottom: var(--spacing-4);
+    padding: var(--spacing-3);
+    background-color: var(--gray-100);
+    border-radius: var(--border-radius);
+}
+
+.error-actions {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-3);
+}
+
+.btn {
+    display: inline-block;
+    padding: var(--spacing-2) var(--spacing-4);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    text-align: center;
+    text-decoration: none;
+    border-radius: var(--border-radius);
+    transition: all var(--transition-speed) var(--transition-timing);
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    border: 1px solid var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    transform: translateY(-1px);
+    box-shadow: var(--box-shadow-sm);
+}
+
+.btn-secondary {
+    background-color: var(--light-color);
+    color: var(--dark-color);
+    border: 1px solid var(--gray-300);
+}
+
+.btn-secondary:hover {
+    background-color: var(--gray-200);
+    border-color: var(--gray-400);
+    transform: translateY(-1px);
+    box-shadow: var(--box-shadow-sm);
+}
+
+/* Responsive design */
+@media (max-width: var(--breakpoint-sm)) {
+    .error-code {
+        font-size: 4rem;
+    }
+
+    .error-title {
+        font-size: var(--font-size-base);
+    }
+
+    .error-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+    }
+}

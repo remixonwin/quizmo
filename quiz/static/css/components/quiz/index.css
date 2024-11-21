@@ -1,0 +1,108 @@
+/**
+ * Quiz Components Main Entry Point
+ */
+
+/* Import all quiz-related components */
+@import './list.css';
+@import './questions.css';
+@import './results.css';
+
+/* Common quiz components styles */
+.btn {
+    display: inline-block;
+    padding: var(--spacing-2) var(--spacing-4);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    text-align: center;
+    text-decoration: none;
+    border-radius: var(--border-radius);
+    transition: all var(--transition-speed) var(--transition-timing);
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    transform: translateY(-1px);
+    box-shadow: var(--box-shadow-sm);
+}
+
+.btn-secondary {
+    background-color: var(--light-color);
+    color: var(--dark-color);
+    border-color: var(--gray-300);
+}
+
+.btn-secondary:hover {
+    background-color: var(--gray-200);
+    border-color: var(--gray-400);
+    transform: translateY(-1px);
+    box-shadow: var(--box-shadow-sm);
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    color: white;
+    border-color: var(--success-color);
+}
+
+.btn-success:hover {
+    background-color: darken(var(--success-color), 10%);
+    border-color: darken(var(--success-color), 10%);
+    transform: translateY(-1px);
+    box-shadow: var(--box-shadow-sm);
+}
+
+/* Common quiz utilities */
+.quiz-container {
+    max-width: var(--container-max-width);
+    margin: 0 auto;
+    padding: 0 var(--spacing-4);
+}
+
+.quiz-section {
+    margin: var(--spacing-5) 0;
+}
+
+.quiz-title {
+    color: var(--primary-color);
+    font-size: 2rem;
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--spacing-4);
+    text-align: center;
+}
+
+.quiz-subtitle {
+    color: var(--gray-600);
+    font-size: var(--font-size-lg);
+    text-align: center;
+    margin-bottom: var(--spacing-5);
+}
+
+/* Responsive design */
+@media (max-width: var(--breakpoint-md)) {
+    .quiz-container {
+        padding: 0 var(--spacing-3);
+    }
+
+    .btn {
+        margin: var(--spacing-2);
+        display: block;
+        width: 100%;
+    }
+
+    .quiz-title {
+        font-size: 1.75rem;
+    }
+
+    .quiz-subtitle {
+        font-size: var(--font-size-base);
+    }
+}

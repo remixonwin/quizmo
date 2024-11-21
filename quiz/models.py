@@ -1,136 +1,139 @@
+"""
+Quiz models with functional programming patterns.
+"""
 from django.db import models
-from django.contrib.auth.models import User
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.contrib.auth import get_user_model
 from django.utils import timezone
-from django.db.models import Index
-from django.core.cache import cache
-from django.db.models.signals import post_save, post_delete
-from django.dispatch import receiver
+from django.core.validators import MinValueValidator, MaxValueValidator
+from decimal import Decimal
+
+User = get_user_model()
 
 class Quiz(models.Model):
-    title = models.CharField(max_length=200, db_index=True)
-    description = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    """Quiz model."""
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    image = models.ImageField(upload_to='quiz_images/', null=True, blank=True)
-    is_active = models.BooleanField(default=True, db_index=True)
-    
-    class Meta:
-        ordering = ['-created_at']
-        indexes = [
-            models.Index(fields=['title', 'created_at']),
-            models.Index(fields=['is_active', 'created_at']),
+    is_active = models.BooleanField(default=True)
+    pass_mark = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=70.00,
+        validators=[
+            MinValueValidator(Decimal('0.00')),
+            MaxValueValidator(Decimal('100.00'))
         ]
-        verbose_name_plural = "Quizzes"
+    )
     
     def __str__(self):
         return self.title
     
-    def get_questions(self):
-        return self.questions.all()
-
-    def calculate_score(self):
-        """Calculate quiz score with caching"""
-        cache_key = f'quiz_score_{self.id}'
-        score_data = cache.get(cache_key)
-        
-        if score_data is None:
-            total_questions = self.questions.count()
-            correct_answers = sum(1 for q in self.questions.all() if q.choices.filter(is_correct=True).exists())
-            score = (correct_answers / total_questions) * 100 if total_questions > 0 else 0
-            passed = correct_answers >= 32  # Need 32 out of 40 to pass
-            
-            score_data = {
-                'total_questions': total_questions,
-                'correct_answers': correct_answers,
-                'score': score,
-                'passed': passed,
-                'required_to_pass': 32
-            }
-            
-            cache.set(cache_key, score_data, 3600)  # Cache for 1 hour
-        
-        return score_data
+    class Meta:
+        verbose_name_plural = 'quizzes'
+        ordering = ['-created_at']
 
 class Question(models.Model):
-    quiz = models.ForeignKey(Quiz, related_name='questions', on_delete=models.CASCADE)
+    """Question model."""
+    DIFFICULTY_CHOICES = [
+        ('easy', 'Easy'),
+        ('medium', 'Medium'),
+        ('hard', 'Hard')
+    ]
+    
+    quiz = models.ForeignKey(
+        Quiz,
+        on_delete=models.CASCADE,
+        related_name='questions'
+    )
     text = models.TextField()
     explanation = models.TextField(blank=True)
-    image = models.ImageField(upload_to='question_images/', null=True, blank=True)
-    order = models.IntegerField(default=0)
+    difficulty = models.CharField(
+        max_length=10,
+        choices=DIFFICULTY_CHOICES,
+        default='medium'
+    )
+    points = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=1.00,
+        validators=[MinValueValidator(Decimal('0.00'))]
+    )
+    order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.quiz.title} - {self.text[:50]}"
     
     class Meta:
         ordering = ['order', 'id']
-        indexes = [
-            models.Index(fields=['quiz', 'order']),
-        ]
-    
-    def __str__(self):
-        return f"{self.quiz.title} - Question {self.order}"
-    
-    def get_choices(self):
-        return self.choices.all()
-
-    def get_correct_choice(self):
-        """Get correct choice with caching"""
-        cache_key = f'question_correct_choice_{self.id}'
-        correct_choice = cache.get(cache_key)
-        
-        if correct_choice is None:
-            correct_choice = self.choices.filter(is_correct=True).first()
-            if correct_choice:
-                cache.set(cache_key, correct_choice, 3600)  # Cache for 1 hour
-        
-        return correct_choice
 
 class Choice(models.Model):
-    question = models.ForeignKey(Question, related_name='choices', on_delete=models.CASCADE)
+    """Choice model."""
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE,
+        related_name='choices'
+    )
     text = models.CharField(max_length=200)
     is_correct = models.BooleanField(default=False)
     explanation = models.TextField(blank=True)
-    
-    class Meta:
-        indexes = [
-            models.Index(fields=['question', 'is_correct']),
-        ]
+    order = models.PositiveIntegerField(default=0)
     
     def __str__(self):
-        return f"{self.question.text[:30]} - {self.text[:30]}"
+        return self.text
+    
+    class Meta:
+        ordering = ['order', 'id']
+        unique_together = [('question', 'order')]
 
 class QuizAttempt(models.Model):
-    user = models.ForeignKey(User, related_name='quiz_attempts', on_delete=models.CASCADE)
-    quiz = models.ForeignKey(Quiz, related_name='attempts', on_delete=models.CASCADE)
-    score = models.FloatField(
-        validators=[MinValueValidator(0), MaxValueValidator(100)]
+    """Quiz attempt model."""
+    quiz = models.ForeignKey(
+        Quiz,
+        on_delete=models.CASCADE,
+        related_name='attempts'
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    completed_at = models.DateTimeField(default=timezone.now)
-    time_taken = models.DurationField()
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='quiz_attempts'
+    )
+    started_at = models.DateTimeField(default=timezone.now)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    score = models.FloatField(null=True, blank=True)
+    time_taken = models.FloatField(null=True, blank=True)
+    metadata = models.JSONField(default=dict, blank=True, null=True)
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.quiz.title}"
     
     class Meta:
-        ordering = ['-created_at']
-        indexes = [
-            models.Index(fields=['user', 'quiz', 'created_at']),
-            models.Index(fields=['quiz', 'score']),
-        ]
-        
+        ordering = ['-started_at']
+
+class UserAnswer(models.Model):
+    """User answer model."""
+    attempt = models.ForeignKey(
+        QuizAttempt,
+        on_delete=models.CASCADE,
+        related_name='answers'
+    )
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.PROTECT,
+        related_name='user_answers'
+    )
+    choice = models.ForeignKey(
+        Choice,
+        on_delete=models.PROTECT,
+        related_name='user_answers'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    
     def __str__(self):
-        return f"{self.user.username} - {self.quiz.title} - {self.score}%"
-
-# Signal handlers for cache invalidation
-@receiver([post_save, post_delete], sender=Quiz)
-def invalidate_quiz_cache(sender, instance, **kwargs):
-    """Invalidate quiz-related caches"""
-    cache.delete(f'quiz_score_{instance.id}')
-    cache.delete('quiz_list')
-
-@receiver([post_save, post_delete], sender=Question)
-def invalidate_question_cache(sender, instance, **kwargs):
-    """Invalidate question-related caches"""
-    cache.delete(f'quiz_score_{instance.quiz_id}')
-    cache.delete(f'question_correct_choice_{instance.id}')
-
-@receiver([post_save, post_delete], sender=Choice)
-def invalidate_choice_cache(sender, instance, **kwargs):
-    """Invalidate choice-related caches"""
-    cache.delete(f'question_correct_choice_{instance.question_id}')
+        return f"{self.attempt.user.username} - {self.question.text[:50]}"
+    
+    class Meta:
+        ordering = ['created_at']

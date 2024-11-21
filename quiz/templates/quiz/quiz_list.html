@@ -48,23 +48,14 @@
                         <div class="progress mb-4" style="height: 10px;">
                             <div class="progress-bar" role="progressbar" style="width: 80%;" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
-                        <p class="text-muted small text-center">Required passing score: 80%</p>
-                        <div class="d-flex justify-content-around text-center mt-4">
-                            <div>
-                                <i class="fas fa-clock fa-2x text-primary mb-2"></i>
-                                <h5 class="mb-0">60 min</h5>
-                                <small class="text-muted">Time Limit</small>
-                            </div>
-                            <div>
-                                <i class="fas fa-redo fa-2x text-success mb-2"></i>
-                                <h5 class="mb-0">∞</h5>
-                                <small class="text-muted">Retakes</small>
-                            </div>
-                            <div>
-                                <i class="fas fa-mobile-alt fa-2x text-info mb-2"></i>
-                                <h5 class="mb-0">Any Device</h5>
-                                <small class="text-muted">Access</small>
-                            </div>
+                        <p class="text-muted">You need to score at least 80% to pass the test</p>
+                        <div class="d-grid gap-2">
+                            <a href="#quizzes" class="btn btn-primary">
+                                <i class="fas fa-play me-2"></i>Start a Practice Test
+                            </a>
+                            <a href="{% url 'quiz:help' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-question-circle me-2"></i>Need Help?
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -79,87 +70,74 @@
         <div class="row">
             {% for quiz in quizzes %}
                 <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body p-4">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="badge bg-primary rounded-pill">Test #{{ forloop.counter }}</span>
-                                <small class="text-muted">{{ quiz.created_at|date:"M d, Y" }}</small>
-                            </div>
-                            <h5 class="card-title mb-3">{{ quiz.title }}</h5>
-                            <p class="card-text text-muted">{{ quiz.description|truncatewords:30 }}</p>
-                            <div class="mt-4">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="small text-muted">
-                                        <i class="fas fa-question-circle me-1"></i>
-                                        40 Questions
-                                    </div>
-                                    <a href="{% url 'take_quiz' quiz.id %}" class="btn btn-primary">
-                                        Start Quiz
-                                        <i class="fas fa-arrow-right ms-2"></i>
-                                    </a>
-                                </div>
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">{{ quiz.title }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">{{ quiz.description }}</p>
+                            <ul class="list-unstyled mb-4">
+                                <li class="mb-2">
+                                    <i class="fas fa-clock text-muted me-2"></i>
+                                    Time Limit: {{ quiz.time_limit }} minutes
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-question-circle text-muted me-2"></i>
+                                    Questions: {{ quiz.question_count }}
+                                </li>
+                                <li>
+                                    <i class="fas fa-trophy text-muted me-2"></i>
+                                    Passing Score: {{ quiz.passing_score }}%
+                                </li>
+                            </ul>
+                            <div class="d-grid">
+                                <a href="{% url 'quiz:quiz_detail' quiz.id %}" class="btn btn-primary">
+                                    <i class="fas fa-play me-2"></i>Take Quiz
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
             {% endfor %}
         </div>
+        
+        {% if is_paginated %}
+        <nav aria-label="Quiz navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
     {% else %}
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-5 text-center">
-                <i class="fas fa-exclamation-circle fa-3x text-warning mb-3"></i>
-                <h4>No Quizzes Available</h4>
-                <p class="text-muted mb-0">Please check back later for new practice tests.</p>
-            </div>
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle me-2"></i>No practice tests are currently available. Please check back later.
         </div>
     {% endif %}
-</div>
-
-<div class="row mb-5" id="contact">
-    <div class="col-lg-8 mx-auto">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-4">
-                <h4 class="card-title text-center mb-4">Study Tips</h4>
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-start">
-                            <i class="fas fa-book text-primary fa-2x me-3"></i>
-                            <div>
-                                <h5>Review the Manual</h5>
-                                <p class="text-muted">Start by thoroughly reading the Minnesota Driver's Manual. It contains all the information you need to know.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-start">
-                            <i class="fas fa-pencil-alt text-success fa-2x me-3"></i>
-                            <div>
-                                <h5>Take Notes</h5>
-                                <p class="text-muted">Write down important rules, signs, and regulations. Active note-taking improves retention.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-start">
-                            <i class="fas fa-clock text-warning fa-2x me-3"></i>
-                            <div>
-                                <h5>Practice Regularly</h5>
-                                <p class="text-muted">Set aside time each day to take practice tests. Consistency is key to success.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-start">
-                            <i class="fas fa-chart-line text-info fa-2x me-3"></i>
-                            <div>
-                                <h5>Track Progress</h5>
-                                <p class="text-muted">Monitor your scores and focus on areas that need improvement.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 {% endblock %}

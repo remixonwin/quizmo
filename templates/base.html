@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Minnesota DMV Practice Quiz - Test your knowledge of traffic rules and road signs">
     <title>{% block title %}Minnesota DMV Practice Quiz{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     {% block extra_css %}{% endblock %}
     
     <!-- Error Logging Script -->
@@ -73,16 +75,18 @@
 </head>
 <body>
     {% csrf_token %}
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark" role="navigation">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'quiz:home' %}">Minnesota DMV Practice Quiz</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <a class="navbar-brand" href="{% url 'quiz:quiz_list' %}">Minnesota DMV Practice Quiz</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'quiz:practice' %}">Practice Tests</a>
+                        <a class="nav-link" href="{% url 'quiz:quiz_list' %}">
+                            <i class="fas fa-list me-1"></i>Practice Tests
+                        </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'quiz:help' %}">
@@ -93,14 +97,20 @@
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                            <a class="nav-link" href="{% url 'logout' %}">
+                                <i class="fas fa-sign-out-alt me-1"></i>Logout
+                            </a>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">Login</a>
+                            <a class="nav-link" href="{% url 'login' %}">
+                                <i class="fas fa-sign-in-alt me-1"></i>Login
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'quiz:register' %}">Register</a>
+                            <a class="nav-link" href="{% url 'register' %}">
+                                <i class="fas fa-user-plus me-1"></i>Register
+                            </a>
                         </li>
                     {% endif %}
                 </ul>

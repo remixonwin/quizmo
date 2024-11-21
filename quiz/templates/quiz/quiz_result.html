@@ -1,61 +1,97 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
+{% block title %}Quiz Results{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container mt-4">
     <div class="card">
         <div class="card-header bg-primary text-white">
-            <h2 class="mb-0">Quiz Results</h2>
+            <h2 class="h4 mb-0">Quiz Results</h2>
         </div>
         <div class="card-body">
             <h3>{{ quiz.title }}</h3>
             
             <div class="result-summary mt-4">
-                <p class="h4">Your Score: {{ score }} out of {{ total_questions }}</p>
-                <p class="h5">Percentage: {{ percentage }}%</p>
+                <div class="score-display text-center mb-4">
+                    <div class="display-4">{{ score|floatformat:1 }}%</div>
+                    <div class="progress mt-3" style="height: 20px;">
+                        <div class="progress-bar {% if passed %}bg-success{% else %}bg-danger{% endif %}"
+                            role="progressbar"
+                            style="width: {{ score }}%"
+                            aria-valuenow="{{ score }}"
+                            aria-valuemin="0"
+                            aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row text-center mb-4">
+                    <div class="col-md-4">
+                        <div class="h5">Total Questions</div>
+                        <div class="display-6">{{ total_questions }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="h5">Correct Answers</div>
+                        <div class="display-6">{{ correct_answers }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="h5">Required to Pass</div>
+                        <div class="display-6">{{ required_to_pass|floatformat:1 }}%</div>
+                    </div>
+                </div>
                 
                 {% if passed %}
-                <div class="alert alert-success mt-3">
+                <div class="alert alert-success">
                     <h4 class="alert-heading">Congratulations! You Passed! 🎉</h4>
-                    <p>You achieved the required score of {{ required_to_pass }} out of {{ total_questions }} questions correct.</p>
+                    <p>You scored {{ score|floatformat:1 }}%, which is above the required {{ required_to_pass|floatformat:1 }}% passing score.</p>
                 </div>
                 {% else %}
-                <div class="alert alert-danger mt-3">
+                <div class="alert alert-danger">
                     <h4 class="alert-heading">Not Passed</h4>
-                    <p>You need at least {{ required_to_pass }} correct answers to pass. Please review the material and try again.</p>
+                    <p>You need at least {{ required_to_pass|floatformat:1 }}% to pass. Your score was {{ score|floatformat:1 }}%. Please review the material and try again.</p>
                 </div>
                 {% endif %}
             </div>
 
             <div class="question-review mt-4">
-                <h4>Question Review:</h4>
-                {% for answer in user_answers %}
-                <div class="card mb-3 {% if answer.correct %}border-success{% else %}border-danger{% endif %}">
+                <h4 class="mb-3">Question Review</h4>
+                {% for answer in attempt.answers.all %}
+                <div class="card mb-3 {% if answer.choice.is_correct %}border-success{% else %}border-danger{% endif %}">
+                    <div class="card-header {% if answer.choice.is_correct %}bg-success text-white{% else %}bg-danger text-white{% endif %}">
+                        Question {{ forloop.counter }}
+                    </div>
                     <div class="card-body">
-                        {% if answer.question.image %}
-                        <img src="{{ answer.question.image.url }}" alt="Question Image" class="img-fluid mb-3" style="max-height: 200px;">
-                        {% endif %}
-                        <p class="card-text"><strong>Question {{ forloop.counter }}:</strong> {{ answer.question.text }}</p>
+                        <h5 class="card-title">{{ answer.question.text }}</h5>
                         <p class="card-text">
-                            Your answer: 
-                            <span class="{% if answer.correct %}text-success{% else %}text-danger{% endif %}">
-                                {% if answer.user_choice %}
-                                    {{ answer.user_choice.text }}
-                                {% else %}
-                                    No answer provided
-                                {% endif %}
-                            </span>
+                            <strong>Your Answer:</strong> {{ answer.choice.text }}
+                            {% if answer.choice.is_correct %}
+                            <span class="text-success"><i class="fas fa-check-circle"></i> Correct</span>
+                            {% else %}
+                            <span class="text-danger"><i class="fas fa-times-circle"></i> Incorrect</span>
+                            {% endif %}
                         </p>
-                        {% if not answer.correct %}
-                        <p class="card-text text-success">Correct answer: {{ answer.correct_choice.text }}</p>
+                        {% if not answer.choice.is_correct %}
+                        <p class="card-text">
+                            <strong>Correct Answer:</strong>
+                            {{ answer.question.choices.get_correct_choice.text }}
+                        </p>
                         {% endif %}
+                        <p class="card-text">
+                            <strong>Explanation:</strong>
+                            {{ answer.question.explanation }}
+                        </p>
                     </div>
                 </div>
                 {% endfor %}
             </div>
 
             <div class="mt-4">
-                <a href="{% url 'quiz_list' %}" class="btn btn-primary">Back to Quiz List</a>
-                <a href="{% url 'take_quiz' quiz.id %}" class="btn btn-secondary">Try Again</a>
+                <a href="{% url 'quiz:quiz_list' %}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Quiz List
+                </a>
+                <a href="{% url 'quiz:take_quiz' quiz.id %}" class="btn btn-secondary">
+                    <i class="fas fa-redo me-2"></i>Try Again
+                </a>
             </div>
         </div>
     </div>

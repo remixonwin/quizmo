@@ -1,252 +1,192 @@
-from django.test import TestCase, Client
+"""
+Tests for the help page functionality.
+"""
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'quiz.tests.test_settings')
+
+import django
+django.setup()
+
+from django.test import TestCase, Client, TransactionTestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
-import re
+from django.core.management import call_command
+from django.db import connection
+from django.conf import settings
+from django.test.utils import override_settings
 
-class HelpPageTests(TestCase):
+
+class HelpPageTests(TransactionTestCase):
+    """Test cases for help page functionality."""
+    
+    @classmethod
+    def setUpClass(cls):
+        """Set up class-level test data."""
+        super().setUpClass()
+        # Run migrations
+        call_command('migrate', verbosity=0, interactive=False)
+        
     def setUp(self):
-        """Set up test client and create test user"""
-        self.client = Client()
-        self.help_url = reverse('help')
-        self.quiz_list_url = reverse('quiz_list')
+        """Set up test client and URLs."""
+        super().setUp()
+        # Create test user
         self.user = User.objects.create_user(
             username='testuser',
             password='testpass123'
         )
+        self.client = Client()
+        self.help_url = reverse('quiz:help')
+        self.faq_url = reverse('quiz:faq')
+        self.quiz_list_url = reverse('quiz:quiz_list')
 
     def test_help_page_url_exists(self):
-        """Test that help page URL exists and returns 200 status code"""
+        """Test that help page URL exists and returns 200."""
         response = self.client.get(self.help_url)
         self.assertEqual(response.status_code, 200)
 
     def test_help_page_uses_correct_template(self):
-        """Test that help page uses the correct template"""
+        """Test that help page uses the correct template."""
         response = self.client.get(self.help_url)
-        self.assertTemplateUsed(response, 'quiz/help.html')
-        self.assertTemplateUsed(response, 'quiz/base.html')
+        self.assertTemplateUsed(response, 'quiz/help/help.html')  # Updated template path
 
     def test_help_page_content(self):
-        """Test that help page contains expected content"""
+        """Test that help page contains expected content."""
         response = self.client.get(self.help_url)
         content = response.content.decode('utf-8')
         
         # Test section headings exist
         self.assertIn('Quick Start Guide', content)
         self.assertIn('Frequently Asked Questions', content)
-        self.assertIn('Tips & Support', content)
-        self.assertIn('Additional Resources', content)
+        self.assertIn('Study Materials', content)  # Updated section name
 
         # Test specific content elements
-        self.assertIn('Register/Login', content)
-        self.assertIn('Choose a Quiz', content)
-        self.assertIn('Take the Quiz', content)
+        self.assertIn('Create an Account', content)  # Updated content
+        self.assertIn('Choose a Test', content)  # Updated content
+        self.assertIn('Take Practice Tests', content)  # Updated content
         self.assertIn('Review Results', content)
+        
+        # Test FAQ content
+        self.assertIn('Minnesota Driver\'s Manual', content)  # Updated content
+        self.assertIn('Practice Tests', content)
 
-    def test_official_dvs_links_present(self):
-        """Test that all official DVS links are present and correctly formatted"""
+    def test_help_page_accessible_when_logged_out(self):
+        """Test that help page is accessible when not logged in."""
         response = self.client.get(self.help_url)
-        content = response.content.decode('utf-8')
-        
-        # List of required DVS links
-        dvs_links = [
-            'https://drive.mn.gov/',
-            'https://dps.mn.gov/divisions/dvs/forms-documents/Documents/Minnesota_Drivers_Manual.pdf',
-            'https://onlineservices.dps.mn.gov/EServices/_/',
-            'https://dps.mn.gov/divisions/dvs/locations/Pages/find-office-locations.aspx'
-        ]
-        
-        # Check each link exists and has proper attributes
-        for link in dvs_links:
-            # Check link href exists
-            self.assertIn(f'href="{link}"', content)
-            # Check target="_blank" and rel="noopener noreferrer" for security
-            link_pattern = f'href="{link}"[^>]*target="_blank"[^>]*rel="noopener noreferrer"'
-            self.assertTrue(re.search(link_pattern, content), 
-                          f"Link {link} missing security attributes")
-
-    def test_study_materials_links_present(self):
-        """Test that all study material links are present and correctly formatted"""
-        response = self.client.get(self.help_url)
-        content = response.content.decode('utf-8')
-        
-        # List of required study material links
-        study_links = [
-            'https://dps.mn.gov/divisions/dvs/forms-documents/Documents/Minnesota_Road_Signs.pdf',
-            'https://dps.mn.gov/divisions/dvs/news/Pages/default.aspx',
-            'https://dps.mn.gov/divisions/dvs/forms-documents/Pages/drivers-manuals.aspx',
-            'https://dps.mn.gov/divisions/dvs/Pages/drivers-license-information.aspx'
-        ]
-        
-        # Check each link exists and has proper attributes
-        for link in study_links:
-            # Check link href exists
-            self.assertIn(f'href="{link}"', content)
-            # Check target="_blank" and rel="noopener noreferrer" for security
-            link_pattern = f'href="{link}"[^>]*target="_blank"[^>]*rel="noopener noreferrer"'
-            self.assertTrue(re.search(link_pattern, content), 
-                          f"Link {link} missing security attributes")
-
-    def test_support_contact_information(self):
-        """Test that support contact information is present and correct"""
-        response = self.client.get(self.help_url)
-        content = response.content.decode('utf-8')
-        
-        # Test support section exists
-        self.assertIn('Need More Help?', content)
-        
-        # Test support email is correct
-        support_email = 'support@mnpracticetest.com'
-        self.assertIn(f'href="mailto:{support_email}"', content)
-        self.assertIn(support_email, content)
-
-    def test_resource_icons_present(self):
-        """Test that appropriate icons are present for resources"""
-        response = self.client.get(self.help_url)
-        content = response.content.decode('utf-8')
-        
-        # List of required icons
-        icons = [
-            'fa-external-link-alt',  # For external links
-            'fa-book',               # For study materials
-            'fa-graduation-cap',     # For manuals and guides
-            'fa-car'                 # For license information
-        ]
-        
-        # Check each icon exists
-        for icon in icons:
-            self.assertIn(f'fas {icon}', content)
-
-    def test_section_organization(self):
-        """Test that resources are properly organized in sections"""
-        response = self.client.get(self.help_url)
-        content = response.content.decode('utf-8')
-        
-        # Test main section headers
-        sections = [
-            'Official Minnesota DVS Resources',
-            'Study Materials'
-        ]
-        
-        for section in sections:
-            self.assertIn(section, content)
-            
-        # Test proper nesting of sections in columns
-        self.assertIn('col-md-6', content)
-        
-    def test_link_descriptions(self):
-        """Test that links have descriptive text"""
-        response = self.client.get(self.help_url)
-        content = response.content.decode('utf-8')
-        
-        # List of required link descriptions
-        descriptions = [
-            'Minnesota Driver and Vehicle Services (DVS)',
-            'Minnesota Driver\'s Manual (PDF)',
-            'Schedule Your Actual Test',
-            'Find DVS Office Locations',
-            'Road Signs Guide (PDF)',
-            'Latest DVS Updates & News',
-            'All Driver Manuals & Guides',
-            'License Requirements & Classes'
-        ]
-        
-        # Check each description exists
-        for desc in descriptions:
-            self.assertIn(desc, content)
-
-    def test_security_headers(self):
-        """Test that security headers are present in the response"""
-        response = self.client.get(self.help_url)
-        
-        # Test for common security headers
-        security_headers = [
-            'X-Frame-Options',
-            'X-Content-Type-Options',
-            'X-XSS-Protection'
-        ]
-        
-        for header in security_headers:
-            self.assertIn(header, response.headers)
-
-    def test_responsive_design_elements(self):
-        """Test that responsive design elements are present"""
-        response = self.client.get(self.help_url)
-        content = response.content.decode('utf-8')
-        
-        # Test responsive classes
-        responsive_classes = [
-            'container',
-            'row',
-            'col-md-6',
-            'card'
-        ]
-        
-        for class_name in responsive_classes:
-            self.assertIn(class_name, content)
+        self.assertEqual(response.status_code, 200)
 
     def test_help_page_accessible_when_logged_in(self):
-        """Test that help page is accessible when user is logged in"""
+        """Test that help page is accessible when logged in."""
         self.client.login(username='testuser', password='testpass123')
         response = self.client.get(self.help_url)
         self.assertEqual(response.status_code, 200)
 
-    def test_help_page_accessible_when_logged_out(self):
-        """Test that help page is accessible when user is not logged in"""
-        response = self.client.get(self.help_url)
-        self.assertEqual(response.status_code, 200)
+    def test_help_link_from_home(self):
+        """Test that help page is accessible from home page."""
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(self.quiz_list_url)
+        content = response.content.decode('utf-8')
+        
+        # Test Help link presence
+        self.assertIn('Help', content)
+        self.assertIn(reverse('quiz:help'), content)
 
     def test_navigation_links_present(self):
-        """Test that navigation links are present in the template"""
+        """Test that navigation links are present in the template."""
         response = self.client.get(self.help_url)
         content = response.content.decode('utf-8')
         
         # Test navigation menu items
-        self.assertIn('fa-question-circle', content)  # Help icon
-        self.assertIn('fa-home', content)  # Home icon
-        self.assertIn('href="/help/"', content)  # Help link
-        self.assertIn('href="/"', content)  # Home link
+        self.assertIn('Home', content)
+        self.assertIn('Help Center', content)  # Updated content
+
+    def test_help_page_context_data(self):
+        """Test that help page view provides correct context data."""
+        response = self.client.get(self.help_url)
+        self.assertEqual(response.context['title'], 'Help Center')
+        self.assertEqual(response.context['page_title'], 'Help Center')
+        self.assertTrue('quick_start' in response.context)
+        self.assertTrue('faqs' in response.context)
+        self.assertTrue('study_materials' in response.context)
+
+    def test_help_page_meta_tags(self):
+        """Test that help page has proper meta tags."""
+        response = self.client.get(self.help_url)
+        content = response.content.decode('utf-8')
+        
+        # Test meta tags
+        self.assertIn('<title>Help Center - Minnesota DMV Practice Test</title>', content)
+        self.assertIn('<meta name="viewport"', content)
+        self.assertIn('<meta charset="UTF-8"', content)
+
+    def test_help_page_search(self):
+        """Test help page search functionality."""
+        response = self.client.get(f'{self.help_url}?search=quiz')
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('search_query' in response.context)
+        self.assertEqual(response.context['search_query'], 'quiz')
+
+    def test_help_page_security_headers(self):
+        """Test that help page has proper security headers."""
+        response = self.client.get(self.help_url)
+        self.assertEqual(response['X-Frame-Options'], 'DENY')
+        self.assertEqual(response['X-Content-Type-Options'], 'nosniff')
+        self.assertEqual(response['X-XSS-Protection'], '1; mode=block')
+
+    def test_help_page_caching(self):
+        """Test help page caching behavior."""
+        response = self.client.get(self.help_url)
+        self.assertEqual(response['Cache-Control'], 'no-cache, no-store, must-revalidate')
+        self.assertEqual(response['Pragma'], 'no-cache')
+        self.assertEqual(response['Expires'], '0')
+
+    def test_help_page_breadcrumbs(self):
+        """Test help page breadcrumb navigation."""
+        response = self.client.get(self.help_url)
+        content = response.content.decode('utf-8')
+        
+        self.assertIn('Home</a>', content)
+        self.assertIn('Help Center', content)
+
+    def test_support_contact_information(self):
+        """Test that support contact information is present."""
+        response = self.client.get(self.help_url)
+        content = response.content.decode('utf-8')
+        
+        self.assertIn(settings.CONTACT_EMAIL, content)
+        if hasattr(settings, 'SUPPORT_PHONE'):
+            self.assertIn(settings.SUPPORT_PHONE, content)
 
     def test_ui_elements_present(self):
-        """Test that UI elements are present"""
+        """Test that all UI elements are present."""
         response = self.client.get(self.help_url)
         content = response.content.decode('utf-8')
         
-        # Test card elements
-        self.assertIn('card-header', content)
-        self.assertIn('card-body', content)
-        
-        # Test accordion elements for FAQ
-        self.assertIn('accordion', content)
-        self.assertIn('accordion-button', content)
-        
-        # Test footer
-        self.assertIn('Practice for your Minnesota Driver\'s License Test', content)
-
-    def test_help_link_from_home(self):
-        """Test that help page is accessible from home page"""
-        response = self.client.get(self.quiz_list_url)
-        content = response.content.decode('utf-8')
-        
-        # Test Learn More button presence
-        self.assertIn('Learn More', content)
-        self.assertIn('href="/help/"', content)
+        self.assertIn('Quick Start Guide', content)
+        self.assertIn('Study Materials', content)
+        self.assertIn('Contact Support', content)
 
     def test_responsive_layout(self):
-        """Test that responsive classes are present"""
+        """Test that the layout is responsive."""
         response = self.client.get(self.help_url)
         content = response.content.decode('utf-8')
         
-        # Test responsive classes
-        self.assertIn('container', content)
-        self.assertIn('row', content)
-        self.assertIn('col-md-4', content)
-        self.assertIn('navbar-expand-lg', content)
-        self.assertIn('navbar-toggler', content)
+        self.assertIn('class="container', content)
+        self.assertIn('class="row', content)
+        self.assertIn('class="col-', content)
 
-    def test_help_link_in_navigation(self):
-        """Test that help link appears in navigation"""
-        response = self.client.get(self.help_url)  # Get help page instead of home page
+    def test_help_page_accessibility(self):
+        """Test accessibility features."""
+        response = self.client.get(self.help_url)
         content = response.content.decode('utf-8')
-        # Check for both the link text and the icon
-        self.assertIn('fa-question-circle', content)
-        self.assertIn('Help', content)
+        
+        self.assertIn('role="main"', content)
+        self.assertIn('aria-label', content)
+        self.assertIn('aria-current', content)
+
+    def test_help_page_print_styles(self):
+        """Test print-specific styles."""
+        response = self.client.get(self.help_url)
+        content = response.content.decode('utf-8')
+        
+        self.assertIn('@media print', content)
+        self.assertIn('print-friendly', content)

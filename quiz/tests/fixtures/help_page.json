@@ -1,0 +1,56 @@
+{
+    "help_page": {
+        "title": "Help Center",
+        "quick_start": [
+            {
+                "title": "Register/Login",
+                "description": "Create an account or login to track your progress."
+            },
+            {
+                "title": "Choose a Quiz",
+                "description": "Select from available practice tests on the home page."
+            },
+            {
+                "title": "Take the Quiz",
+                "description": "Answer questions within the time limit."
+            },
+            {
+                "title": "Review Results",
+                "description": "See your score and review correct answers."
+            }
+        ],
+        "faqs": [
+            {
+                "question": "What is the passing score?",
+                "answer": "You need to score at least 80% (32 out of 40 questions) to pass."
+            },
+            {
+                "question": "How long is the test?",
+                "answer": "The test consists of 40 questions: 10 traffic sign questions and 30 rules and regulations questions."
+            },
+            {
+                "question": "Can I retake the test?",
+                "answer": "Yes, you can retake the test as many times as you need."
+            },
+            {
+                "question": "Are the questions random?",
+                "answer": "Yes, questions are randomly selected from our database to simulate the actual DMV test."
+            },
+            {
+                "question": "How do I study for the test?",
+                "answer": "Review the Minnesota Driver's Manual and take our practice tests regularly."
+            }
+        ],
+        "study_tips": [
+            "Review incorrect answers after each quiz",
+            "Take practice tests regularly",
+            "Read questions carefully",
+            "Don't rush your answers"
+        ],
+        "support": {
+            "email": "support@mnpracticetest.com",
+            "phone": "1-800-555-0123",
+            "hours": "Monday-Friday 9:00 AM - 5:00 PM CST"
+        }
+    }
+}

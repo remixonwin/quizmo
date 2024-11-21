@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}403 - Forbidden{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-content">
+        <h1>{{ error_code }}</h1>
+        <h2>{{ error_message }}</h2>
+        <p>Sorry, you don't have permission to access this page.</p>
+        <a href="{% url 'quiz:quiz_list' %}" class="btn btn-primary">Return to Quiz List</a>
+    </div>
+</div>
+{% endblock %}

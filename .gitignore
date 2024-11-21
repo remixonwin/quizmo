@@ -8,6 +8,7 @@ logs/
 *.log
 
 # Environment
+!.env.example
 .env
 .env.*
 
@@ -63,3 +64,67 @@ Thumbs.db
 *credential*
 *.token
 *.key
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Django
+*.log
+*.pot
+*.pyc
+db.sqlite3
+db.sqlite3-journal
+media/
+local_settings.py
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Testing
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+test_db.sqlite3
+
+# Static files
+staticfiles/
+node_modules/
+
+# Backup files
+*.bak
+*~
+*.swp
+*.swo
+backup_metadata.json
+
+# Cache
+.cache/

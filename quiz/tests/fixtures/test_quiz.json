@@ -1,0 +1,224 @@
+[
+    {
+        "model": "quiz.quiz",
+        "pk": 1,
+        "fields": {
+            "title": "Sample DMV Practice Test",
+            "description": "Practice test for Minnesota driver's permit",
+            "is_active": true,
+            "passing_score": "80.00",
+            "created_at": "2023-11-19T21:00:00Z",
+            "updated_at": "2023-11-19T21:00:00Z",
+            "image": null,
+            "bank": null
+        }
+    },
+    {
+        "model": "quiz.question",
+        "pk": 1,
+        "fields": {
+            "quiz": 1,
+            "text": "What should you do at a red traffic light?",
+            "explanation": "A red light means you must come to a complete stop before the crosswalk or stop line.",
+            "order": 1,
+            "created_at": "2023-11-19T21:00:00Z",
+            "image": null
+        }
+    },
+    {
+        "model": "quiz.choice",
+        "pk": 1,
+        "fields": {
+            "question": 1,
+            "text": "Come to a complete stop",
+            "is_correct": true,
+            "explanation": ""
+        }
+    },
+    {
+        "model": "quiz.choice",
+        "pk": 2,
+        "fields": {
+            "question": 1,
+            "text": "Slow down and proceed if clear",
+            "is_correct": false,
+            "explanation": ""
+        }
+    },
+    {
+        "model": "quiz.choice",
+        "pk": 3,
+        "fields": {
+            "question": 1,
+            "text": "Speed up to get through quickly",
+            "is_correct": false,
+            "explanation": ""
+        }
+    },
+    {
+        "model": "quiz.quizattempt",
+        "pk": 1,
+        "fields": {
+            "user": 1,
+            "quiz": 1,
+            "score": null,
+            "created_at": "2023-11-19T21:00:00Z",
+            "started_at": "2023-11-19T21:00:00Z",
+            "completed_at": null,
+            "time_taken": null
+        }
+    },
+    {
+        "model": "quiz.quiz",
+        "pk": 2,
+        "fields": {
+            "title": "Minnesota Road Signs Practice Test",
+            "description": "Test your knowledge of Minnesota road signs. Each question shows a traffic sign - select the correct meaning.",
+            "is_active": true,
+            "passing_score": "80.00",
+            "created_at": "2023-11-19T21:00:00Z",
+            "updated_at": "2023-11-19T21:00:00Z",
+            "image": null,
+            "bank": null
+        }
+    },
+    {
+        "model": "quiz.question",
+        "pk": 2,
+        "fields": {
+            "quiz": 2,
+            "text": "What does this road sign mean?",
+            "explanation": "A STOP sign means you must come to a complete stop. Stop at the marked stop line or before entering the crosswalk. If there is no stop line or crosswalk, stop before the intersection. Yield right-of-way to pedestrians and to vehicles in or approaching the intersection.",
+            "order": 1,
+            "created_at": "2023-11-19T21:00:00Z",
+            "image": "question_images/stop_sign.jpg"
+        }
+    },
+    {
+        "model": "quiz.question",
+        "pk": 3,
+        "fields": {
+            "quiz": 2,
+            "text": "What does this road sign indicate?",
+            "explanation": "The YIELD sign means you must slow down and give vehicles crossing your path the right-of-way. If necessary, stop before entering a crosswalk or at the point nearest the intersecting roadway where you can see approaching traffic.",
+            "order": 2,
+            "created_at": "2023-11-19T21:00:00Z",
+            "image": "question_images/yield.jpg"
+        }
+    },
+    {
+        "model": "quiz.question",
+        "pk": 4,
+        "fields": {
+            "quiz": 2,
+            "text": "What does this warning sign mean?",
+            "explanation": "The DEER CROSSING sign warns that deer frequently cross the roadway in this area. Be especially alert for deer during dawn, dusk, and nighttime hours.",
+            "order": 3,
+            "created_at": "2023-11-19T21:00:00Z",
+            "image": "question_images/deer_crossing.jpg"
+        }
+    },
+    {
+        "model": "quiz.choice",
+        "pk": 4,
+        "fields": {
+            "question": 2,
+            "text": "Come to a complete stop",
+            "is_correct": true,
+            "explanation": "A STOP sign requires all vehicles to come to a complete stop."
+        }
+    },
+    {
+        "model": "quiz.choice",
+        "pk": 5,
+        "fields": {
+            "question": 2,
+            "text": "Slow down and proceed with caution",
+            "is_correct": false,
+            "explanation": "This is incorrect. A STOP sign requires a complete stop, not just slowing down."
+        }
+    },
+    {
+        "model": "quiz.choice",
+        "pk": 6,
+        "fields": {
+            "question": 2,
+            "text": "Stop only if other vehicles are present",
+            "is_correct": false,
+            "explanation": "This is incorrect. You must stop at a STOP sign regardless of whether other vehicles are present."
+        }
+    },
+    {
+        "model": "quiz.choice",
+        "pk": 7,
+        "fields": {
+            "question": 3,
+            "text": "Yield right-of-way to other vehicles",
+            "is_correct": true,
+            "explanation": "A YIELD sign means you must let other vehicles go first."
+        }
+    },
+    {
+        "model": "quiz.choice",
+        "pk": 8,
+        "fields": {
+            "question": 3,
+            "text": "Come to a complete stop",
+            "is_correct": false,
+            "explanation": "This is incorrect. A YIELD sign doesn't require a complete stop unless necessary for safety."
+        }
+    },
+    {
+        "model": "quiz.choice",
+        "pk": 9,
+        "fields": {
+            "question": 3,
+            "text": "Proceed without slowing",
+            "is_correct": false,
+            "explanation": "This is incorrect. A YIELD sign requires you to slow down and be prepared to stop if necessary."
+        }
+    },
+    {
+        "model": "quiz.choice",
+        "pk": 10,
+        "fields": {
+            "question": 4,
+            "text": "Watch for deer crossing the road",
+            "is_correct": true,
+            "explanation": "This sign warns drivers to be alert for deer crossing the roadway."
+        }
+    },
+    {
+        "model": "quiz.choice",
+        "pk": 11,
+        "fields": {
+            "question": 4,
+            "text": "Deer hunting area ahead",
+            "is_correct": false,
+            "explanation": "This is incorrect. The sign warns about deer crossing the road, not about hunting areas."
+        }
+    },
+    {
+        "model": "quiz.choice",
+        "pk": 12,
+        "fields": {
+            "question": 4,
+            "text": "Zoo area ahead",
+            "is_correct": false,
+            "explanation": "This is incorrect. The sign specifically warns about wild deer crossing the road, not a zoo area."
+        }
+    },
+    {
+        "model": "quiz.quizattempt",
+        "pk": 2,
+        "fields": {
+            "user": 1,
+            "quiz": 2,
+            "score": null,
+            "created_at": "2023-11-19T21:00:00Z",
+            "started_at": "2023-11-19T21:00:00Z",
+            "completed_at": null,
+            "time_taken": null
+        }
+    }
+]

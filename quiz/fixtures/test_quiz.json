@@ -1,0 +1,243 @@
+[
+  {
+    "model": "quiz.quiz",
+    "pk": 1,
+    "fields": {
+      "title": "Minnesota DMV Practice Test - Part 1",
+      "description": "First 5 questions of the Minnesota DMV Practice Test",
+      "is_active": true,
+      "created_at": "2023-11-19T21:07:46Z",
+      "updated_at": "2023-11-19T21:07:46Z"
+    }
+  },
+  {
+    "model": "quiz.question",
+    "pk": 1,
+    "fields": {
+      "quiz": 1,
+      "text": "What is the speed limit in urban residential areas unless otherwise posted?",
+      "order": 1,
+      "created_at": "2023-11-19T21:07:46Z"
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 1,
+    "fields": {
+      "question": 1,
+      "text": "30 mph",
+      "is_correct": true
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 2,
+    "fields": {
+      "question": 1,
+      "text": "25 mph",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 3,
+    "fields": {
+      "question": 1,
+      "text": "35 mph",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 4,
+    "fields": {
+      "question": 1,
+      "text": "40 mph",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "quiz.question",
+    "pk": 2,
+    "fields": {
+      "quiz": 1,
+      "text": "When two vehicles reach an intersection without traffic signs or signals at the same time, who has the right of way?",
+      "order": 2,
+      "created_at": "2023-11-19T21:07:46Z"
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 5,
+    "fields": {
+      "question": 2,
+      "text": "The vehicle on the right",
+      "is_correct": true
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 6,
+    "fields": {
+      "question": 2,
+      "text": "The vehicle on the left",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 7,
+    "fields": {
+      "question": 2,
+      "text": "The larger vehicle",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 8,
+    "fields": {
+      "question": 2,
+      "text": "The faster vehicle",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "quiz.question",
+    "pk": 3,
+    "fields": {
+      "quiz": 1,
+      "text": "How long must you signal before making a turn in traffic?",
+      "order": 3,
+      "created_at": "2023-11-19T21:07:46Z"
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 9,
+    "fields": {
+      "question": 3,
+      "text": "At least 100 feet",
+      "is_correct": true
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 10,
+    "fields": {
+      "question": 3,
+      "text": "At least 50 feet",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 11,
+    "fields": {
+      "question": 3,
+      "text": "At least 200 feet",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 12,
+    "fields": {
+      "question": 3,
+      "text": "At least 75 feet",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "quiz.question",
+    "pk": 4,
+    "fields": {
+      "quiz": 1,
+      "text": "What is the speed limit in a school zone when children are present?",
+      "order": 4,
+      "created_at": "2023-11-19T21:07:46Z"
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 13,
+    "fields": {
+      "question": 4,
+      "text": "20 mph",
+      "is_correct": true
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 14,
+    "fields": {
+      "question": 4,
+      "text": "15 mph",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 15,
+    "fields": {
+      "question": 4,
+      "text": "25 mph",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 16,
+    "fields": {
+      "question": 4,
+      "text": "30 mph",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "quiz.question",
+    "pk": 5,
+    "fields": {
+      "quiz": 1,
+      "text": "When driving in fog, you should:",
+      "order": 5,
+      "created_at": "2023-11-19T21:07:46Z"
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 17,
+    "fields": {
+      "question": 5,
+      "text": "Use low beam headlights",
+      "is_correct": true
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 18,
+    "fields": {
+      "question": 5,
+      "text": "Use high beam headlights",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 19,
+    "fields": {
+      "question": 5,
+      "text": "Use parking lights only",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 20,
+    "fields": {
+      "question": 5,
+      "text": "Turn off all lights",
+      "is_correct": false
+    }
+  }
+]

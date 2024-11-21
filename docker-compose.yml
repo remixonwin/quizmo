@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  web:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - /app/staticfiles  # Anonymous volume for better performance
+      - /app/media  # Anonymous volume for better performance
+    environment:
+      - DEBUG=1  # Enable debug for development
+      - DJANGO_SETTINGS_MODULE=windsurf_app.settings_docker
+      - DJANGO_SECRET_KEY=your-development-secret-key
+      - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+      - POSTGRES_DB=quiz_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      bash -c "python manage.py migrate --noinput &&
+               python manage.py collectstatic --noinput &&
+               python manage.py runserver 0.0.0.0:8000"  # Use runserver for development
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  db:
+    image: postgres:15-alpine  # Using alpine for smaller image size
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=quiz_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"  # Exposed for local development tools
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine  # Using alpine for smaller image size
+    ports:
+      - "6379:6379"  # Exposed for local development tools
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

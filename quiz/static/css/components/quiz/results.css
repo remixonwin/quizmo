@@ -1,0 +1,66 @@
+/**
+ * Quiz Results Component Styles
+ */
+
+@import '../../base/variables.css';
+
+.result-summary {
+    padding: var(--spacing-4);
+    background-color: var(--gray-100);
+    border-radius: var(--border-radius-lg);
+    margin-bottom: var(--spacing-4);
+    box-shadow: var(--box-shadow-sm);
+}
+
+.result-summary h3 {
+    color: var(--primary-color);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--spacing-3);
+}
+
+.progress {
+    height: 25px;
+    background-color: var(--gray-200);
+    border-radius: var(--border-radius-lg);
+    margin: var(--spacing-4) 0;
+    overflow: hidden;
+}
+
+.progress-bar {
+    transition: width var(--transition-speed) var(--transition-timing);
+    background-color: var(--success-color);
+}
+
+.result-details {
+    background-color: white;
+    padding: var(--spacing-4);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--box-shadow);
+}
+
+.result-details p {
+    margin-bottom: var(--spacing-2);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+}
+
+.text-success {
+    color: var(--success-color) !important;
+    font-weight: var(--font-weight-bold);
+}
+
+.text-danger {
+    color: var(--danger-color) !important;
+    font-weight: var(--font-weight-bold);
+}
+
+/* Responsive design */
+@media (max-width: var(--breakpoint-md)) {
+    .result-summary {
+        padding: var(--spacing-3);
+    }
+    
+    .result-details {
+        padding: var(--spacing-3);
+    }
+}

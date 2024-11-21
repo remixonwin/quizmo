@@ -1,24 +1,32 @@
+"""
+URL configuration for quiz app.
+"""
 from django.urls import path
-from . import views
+from .views.quiz.submit import QuizSubmitView
+from .views.quiz_views import (
+    QuizListView, QuizDetailView, QuizStartView,
+    QuizTakeView, QuizResultsView
+)
+from .views import HelpView, FAQView, auth_views
+from .views.error_handlers import handler403, handler404, handler500
+from .views.health import health_check
 
 app_name = 'quiz'
 
 urlpatterns = [
-    path('', views.QuizListView.as_view(), name='home'),
-    path('help/', views.help_page, name='help'),
-    path('register/', views.register, name='register'),
-    path('log-client-error/', views.log_client_error, name='log_client_error'),
-    path('test-errors/', views.test_error_page, name='test_errors'),
-    path('preview/', views.preview_page, name='preview'),
-    path('practice/', views.QuizListView.as_view(), name='practice'),
-    path('results/', views.quiz_results, name='results'),
-    path('<int:pk>/', views.QuizDetailView.as_view(), name='quiz_detail'),
-    path('<int:quiz_id>/take/', views.take_quiz, name='take_quiz'),
-    path('<int:quiz_id>/submit/', views.submit_quiz, name='submit_quiz'),
-    path('<int:quiz_id>/results/', views.quiz_results, name='quiz_results'),
+    path('health/', health_check, name='health_check'),
+    path('', QuizListView.as_view(), name='quiz_list'),
+    path('<int:quiz_id>/', QuizDetailView.as_view(), name='quiz_detail'),
+    path('<int:quiz_id>/start/', QuizStartView.as_view(), name='start_quiz'),
+    path('<int:quiz_id>/take/', QuizTakeView, name='take_quiz'),
+    path('<int:quiz_id>/submit/', QuizSubmitView.as_view(), name='quiz_submit'),
+    path('<int:quiz_id>/results/', QuizResultsView.as_view(), name='quiz_results'),
+    path('help/', HelpView.as_view(), name='help'),
+    path('faq/', FAQView.as_view(), name='faq'),
+    path('register/', auth_views.register, name='register'),
 ]
 
 # Error handlers
-handler403 = 'quiz.views.handler403'
-handler404 = 'quiz.views.handler404'
-handler500 = 'quiz.views.handler500'
+handler403 = 'quiz.views.error_handlers.handler403'
+handler404 = 'quiz.views.error_handlers.handler404'
+handler500 = 'quiz.views.error_handlers.handler500'

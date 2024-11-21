@@ -1,181 +1,227 @@
 {% extends 'quiz/base.html' %}
+{% load static %}
 
-{% block title %}Help - Minnesota DMV Practice Test{% endblock %}
+{% block title %}{{ page_title }} - Minnesota DMV Practice Test{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-highlight {
+        background-color: #fff3cd;
+        padding: 2px;
+        border-radius: 2px;
+    }
+    .help-section {
+        scroll-margin-top: 2rem;
+    }
+    @media (max-width: 768px) {
+        .help-section {
+            scroll-margin-top: 1rem;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <h1 class="mb-4">Help Center</h1>
-    
-    <div class="row">
-        <!-- Quick Start Guide -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h2 class="h5 mb-0">Quick Start Guide</h2>
-                </div>
-                <div class="card-body">
-                    <ol class="list-unstyled">
-                        <li class="mb-3">
-                            <strong>1. Register/Login</strong>
-                            <p class="small text-muted">Create an account or login to track your progress.</p>
-                        </li>
-                        <li class="mb-3">
-                            <strong>2. Choose a Quiz</strong>
-                            <p class="small text-muted">Select from available practice tests on the home page.</p>
-                        </li>
-                        <li class="mb-3">
-                            <strong>3. Take the Quiz</strong>
-                            <p class="small text-muted">Answer questions within the time limit.</p>
-                        </li>
-                        <li>
-                            <strong>4. Review Results</strong>
-                            <p class="small text-muted">See your score and review correct answers.</p>
-                        </li>
-                    </ol>
-                </div>
-            </div>
-        </div>
+<div class="container-fluid py-4" role="main">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" role="navigation" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'quiz:quiz_list' %}" aria-label="Home"><i class="fas fa-home"></i> Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+        </ol>
+    </nav>
 
-        <!-- FAQ -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h2 class="h5 mb-0">Frequently Asked Questions</h2>
+    <!-- Search Bar -->
+    <div class="row mb-4">
+        <div class="col-12 col-md-6 mx-auto">
+            <form method="get" action="{% url 'quiz:help' %}" role="search" class="search-form">
+                <div class="input-group">
+                    <input type="search" 
+                           name="search" 
+                           class="form-control" 
+                           placeholder="Search help topics..." 
+                           aria-label="Search help topics" 
+                           value="{{ search_query }}"
+                           autocomplete="off">
+                    <button class="btn btn-primary" type="submit" aria-label="Submit search">
+                        <i class="fas fa-search"></i> Search
+                    </button>
                 </div>
-                <div class="card-body">
-                    <div class="accordion" id="faqAccordion">
-                        <div class="accordion-item">
-                            <h3 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-                                    How do I create an account?
-                                </button>
-                            </h3>
-                            <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body">
-                                    Click the "Register" link in the navigation menu. Fill in your username, email (optional), and password.
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-item">
-                            <h3 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-                                    How are quizzes scored?
-                                </button>
-                            </h3>
-                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body">
-                                    Each question is worth one point. Your final score is calculated as a percentage of correct answers.
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-item">
-                            <h3 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
-                                    Is there a time limit?
-                                </button>
-                            </h3>
-                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body">
-                                    Yes, each quiz has a specific time limit. The remaining time is displayed during the quiz.
-                                </div>
-                            </div>
+            </form>
+        </div>
+    </div>
+
+    {% if search_query %}
+    <!-- Search Results -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0">Search Results for "{{ search_query }}"</h2>
+            <a href="{% url 'quiz:help' %}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-times"></i> Clear Search
+            </a>
+        </div>
+        <div class="card-body">
+            {% if search_results %}
+                <div class="list-group">
+                    {% for result in search_results %}
+                    <a href="#{{ result.section }}" class="list-group-item list-group-item-action">
+                        <h3 class="h6 mb-1">{{ result.title }}</h3>
+                        <p class="mb-1">{{ result.excerpt }}</p>
+                    </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="mb-0">No results found for "{{ search_query }}". Try different keywords or browse the sections below.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Start Guide -->
+    <div class="card mb-4 help-section" id="quick_start">
+        <div class="card-header">
+            <h2 class="h5 mb-0">Quick Start Guide</h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for guide in quick_start %}
+                <div class="col-12 col-md-6 col-lg-3 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h3 class="h6">{{ guide.title }}</h3>
+                            <p class="mb-0">{{ guide.description }}</p>
                         </div>
                     </div>
                 </div>
+                {% endfor %}
             </div>
         </div>
+    </div>
 
-        <!-- Tips & Support -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h2 class="h5 mb-0">Tips & Support</h2>
+    <!-- Study Tips -->
+    <div class="card mb-4 help-section" id="study_tips">
+        <div class="card-header">
+            <h2 class="h5 mb-0">Study Tips</h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for tip in study_tips %}
+                <div class="col-12 col-md-6 mb-3">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                        <p class="mb-0">{{ tip }}</p>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <h3 class="h6 mb-3">Study Tips</h3>
-                    <ul class="list-unstyled">
-                        <li class="mb-2">✓ Review incorrect answers after each quiz</li>
-                        <li class="mb-2">✓ Take practice tests regularly</li>
-                        <li class="mb-2">✓ Read questions carefully</li>
-                        <li class="mb-2">✓ Don't rush your answers</li>
-                    </ul>
-                    
-                    <h3 class="h6 mb-3 mt-4">Need More Help?</h3>
-                    <p class="small text-muted">
-                        If you encounter any issues or have questions not covered here, please contact support at:
-                        <a href="mailto:support@mnpracticetest.com">support@mnpracticetest.com</a>
-                    </p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQs -->
+    <div class="card mb-4 help-section" id="faqs">
+        <div class="card-header">
+            <h2 class="h5 mb-0">Frequently Asked Questions</h2>
+        </div>
+        <div class="card-body">
+            <div class="accordion" id="faqAccordion">
+                {% for faq in faqs %}
+                <div class="accordion-item">
+                    <h3 class="accordion-header" id="faq-heading-{{ forloop.counter }}">
+                        <button class="accordion-button collapsed" type="button" 
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#faq-collapse-{{ forloop.counter }}"
+                                aria-expanded="false" 
+                                aria-controls="faq-collapse-{{ forloop.counter }}">
+                            {{ faq.question }}
+                        </button>
+                    </h3>
+                    <div id="faq-collapse-{{ forloop.counter }}" 
+                         class="accordion-collapse collapse" 
+                         aria-labelledby="faq-heading-{{ forloop.counter }}"
+                         data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            {{ faq.answer }}
+                        </div>
+                    </div>
                 </div>
+                {% endfor %}
             </div>
         </div>
     </div>
 
     <!-- Additional Resources -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h2 class="h5 mb-0">Additional Resources</h2>
+    <div class="card mb-4 help-section" id="resources">
+        <div class="card-header">
+            <h2 class="h5 mb-0">Additional Resources</h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h3 class="h6 mb-3">Official Minnesota DVS Resources</h3>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-external-link-alt me-2"></i>
+                            <a href="https://drive.mn.gov/" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               class="text-decoration-none">
+                                Minnesota Driver and Vehicle Services (DVS)
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-book me-2"></i>
+                            <a href="https://dps.mn.gov/divisions/dvs/forms-documents/Documents/Minnesota_Drivers_Manual.pdf" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               class="text-decoration-none">
+                                Minnesota Driver's Manual (PDF)
+                            </a>
+                        </li>
+                    </ul>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h3 class="h6 mb-3">Official Minnesota DVS Resources</h3>
-                            <ul class="list-unstyled">
-                                <li class="mb-2">
-                                    <i class="fas fa-external-link-alt me-2"></i>
-                                    <a href="https://drive.mn.gov/" target="_blank" rel="noopener noreferrer">
-                                        Minnesota Driver and Vehicle Services (DVS)
-                                    </a>
-                                </li>
-                                <li class="mb-2">
-                                    <i class="fas fa-external-link-alt me-2"></i>
-                                    <a href="https://dps.mn.gov/divisions/dvs/forms-documents/Documents/Minnesota_Drivers_Manual.pdf" target="_blank" rel="noopener noreferrer">
-                                        Minnesota Driver's Manual (PDF)
-                                    </a>
-                                </li>
-                                <li class="mb-2">
-                                    <i class="fas fa-external-link-alt me-2"></i>
-                                    <a href="https://onlineservices.dps.mn.gov/EServices/_/" target="_blank" rel="noopener noreferrer">
-                                        Schedule Your Actual Test
-                                    </a>
-                                </li>
-                                <li class="mb-2">
-                                    <i class="fas fa-external-link-alt me-2"></i>
-                                    <a href="https://dps.mn.gov/divisions/dvs/locations/Pages/find-office-locations.aspx" target="_blank" rel="noopener noreferrer">
-                                        Find DVS Office Locations
-                                    </a>
-                                </li>
-                            </ul>
+                <div class="col-md-6">
+                    <h3 class="h6 mb-3">Study Materials</h3>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-file-pdf me-2"></i>
+                            <a href="{% url 'quiz:quiz_list' %}" class="text-decoration-none">
+                                Practice Tests
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-question-circle me-2"></i>
+                            <a href="{% url 'quiz:faq' %}" class="text-decoration-none">
+                                Frequently Asked Questions
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Information -->
+    <div class="card mb-4 help-section" id="contact">
+        <div class="card-header">
+            <h2 class="h5 mb-0">Contact Support</h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-12 col-md-6 mb-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-envelope fa-2x text-primary me-3"></i>
+                        <div>
+                            <h3 class="h6 mb-1">Email Support</h3>
+                            <a href="mailto:{{ support_email }}" class="text-decoration-none">{{ support_email }}</a>
                         </div>
-                        <div class="col-md-6">
-                            <h3 class="h6 mb-3">Study Materials</h3>
-                            <ul class="list-unstyled">
-                                <li class="mb-2">
-                                    <i class="fas fa-book me-2"></i>
-                                    <a href="https://dps.mn.gov/divisions/dvs/forms-documents/Documents/Minnesota_Road_Signs.pdf" target="_blank" rel="noopener noreferrer">
-                                        Road Signs Guide (PDF)
-                                    </a>
-                                </li>
-                                <li class="mb-2">
-                                    <i class="fas fa-book me-2"></i>
-                                    <a href="https://dps.mn.gov/divisions/dvs/news/Pages/default.aspx" target="_blank" rel="noopener noreferrer">
-                                        Latest DVS Updates & News
-                                    </a>
-                                </li>
-                                <li class="mb-2">
-                                    <i class="fas fa-graduation-cap me-2"></i>
-                                    <a href="https://dps.mn.gov/divisions/dvs/forms-documents/Pages/drivers-manuals.aspx" target="_blank" rel="noopener noreferrer">
-                                        All Driver Manuals & Guides
-                                    </a>
-                                </li>
-                                <li class="mb-2">
-                                    <i class="fas fa-car me-2"></i>
-                                    <a href="https://dps.mn.gov/divisions/dvs/Pages/drivers-license-information.aspx" target="_blank" rel="noopener noreferrer">
-                                        License Requirements & Classes
-                                    </a>
-                                </li>
-                            </ul>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 mb-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-phone fa-2x text-primary me-3"></i>
+                        <div>
+                            <h3 class="h6 mb-1">Phone Support</h3>
+                            <a href="tel:{{ contact_phone }}" class="text-decoration-none">{{ contact_phone }}</a>
                         </div>
                     </div>
                 </div>
@@ -183,4 +229,78 @@
         </div>
     </div>
 </div>
+
+<!-- Print Styles -->
+<style media="print">
+    @media print {
+        .navbar,
+        .breadcrumb,
+        .search-form,
+        .accordion-button::after {
+            display: none !important;
+        }
+        
+        .accordion-button {
+            border: none !important;
+        }
+        
+        .accordion-collapse {
+            display: block !important;
+        }
+        
+        .card {
+            border: none !important;
+            margin-bottom: 1rem !important;
+        }
+        
+        .card-header {
+            background: none !important;
+            border-bottom: 1px solid #dee2e6 !important;
+        }
+        
+        .print-friendly {
+            page-break-inside: avoid;
+        }
+        
+        a[href]:after {
+            content: " (" attr(href) ")";
+        }
+    }
+</style>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle search highlighting
+        const searchQuery = '{{ search_query|escapejs }}';
+        if (searchQuery) {
+            const elements = document.querySelectorAll('.card-body p, .card-body h3, .accordion-button');
+            elements.forEach(element => {
+                const text = element.textContent;
+                if (text.toLowerCase().includes(searchQuery.toLowerCase())) {
+                    const regex = new RegExp(searchQuery, 'gi');
+                    element.innerHTML = text.replace(regex, match => 
+                        `<span class="search-highlight">${match}</span>`
+                    );
+                }
+            });
+        }
+
+        // Smooth scroll to sections
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').slice(1);
+                const target = document.getElementById(targetId);
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
 {% endblock %}
