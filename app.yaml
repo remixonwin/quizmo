@@ -1,11 +1,5 @@
 name: mn-dmv-quiz
 region: nyc
-databases:
-- engine: PG
-  name: quiz-db
-  version: "15"
-  size: db-s-dev-database
-  num_nodes: 1
 services:
 - name: web
   instance_count: 1
@@ -16,62 +10,46 @@ services:
   dockerfile_path: Dockerfile
   source_dir: /
   http_port: 8000
-  run_command: gunicorn --bind 0.0.0.0:8000 --workers 4 --worker-class sync --timeout 30 --log-level info windsurf_app.wsgi:application
-  health_check:
-    http_path: /health/
-    initial_delay_seconds: 120
-    period_seconds: 15
-    success_threshold: 1
-    failure_threshold: 5
-    timeout_seconds: 10
   envs:
     - key: PYTHONPATH
       scope: RUN_AND_BUILD_TIME
       value: /app
     - key: DJANGO_SETTINGS_MODULE
       scope: RUN_AND_BUILD_TIME
-      value: windsurf_app.settings
+      value: windsurf_app.settings_digitalocean
     - key: DEBUG
       scope: RUN_AND_BUILD_TIME
       value: "0"
     - key: ALLOWED_HOSTS
       scope: RUN_AND_BUILD_TIME
-      value: "*.ondigitalocean.app,quizmo.me"
-    - key: DJANGO_SECRET_KEY
-      scope: RUN_AND_BUILD_TIME
-      value: ${DJANGO_SECRET_KEY}
+      value: ".ondigitalocean.app,quizmo.me"
     - key: DATABASE_URL
       scope: RUN_AND_BUILD_TIME
-      value: ${quiz-db.DATABASE_URL}
-    - key: CACHE_BACKEND
+      type: SECRET
+      value: "postgres://postgres:Bulls-eye87543@localhost:5432/quiz_db"
+    - key: DJANGO_SECRET_KEY
       scope: RUN_AND_BUILD_TIME
-      value: "django_redis.cache.RedisCache"
-    - key: CACHE_LOCATION
-      scope: RUN_AND_BUILD_TIME
-      value: ${redis.DATABASE_URL}
-    - key: SECURE_SSL_REDIRECT
-      scope: RUN_AND_BUILD_TIME
-      value: "True"
-    - key: SESSION_COOKIE_SECURE
-      scope: RUN_AND_BUILD_TIME
-      value: "True"
-    - key: CSRF_COOKIE_SECURE
-      scope: RUN_AND_BUILD_TIME
-      value: "True"
+      type: SECRET
+      value: "django-insecure-your-secret-key-here"
+  health_check:
+    http_path: /health/
+    initial_delay_seconds: 30
+    period_seconds: 15
+    timeout_seconds: 5
+    success_threshold: 1
+    failure_threshold: 3
   routes:
     - path: /
       preserve_path_prefix: true
     - path: /static
       preserve_path_prefix: true
-- name: redis
-  instance_count: 1
-  instance_size_slug: basic-xxs
-  image:
-    registry_type: DOCKER_HUB
-    repository: redis
-    tag: 6-alpine
-  internal_ports:
-    - 6379
+
+databases:
+- engine: PG
+  name: quiz-db
+  version: "15"
+  size: basic-xxs
+  num_nodes: 1
 domains:
 - domain: quizmo.me
   type: PRIMARY
