@@ -9,7 +9,7 @@
                 <div class="card-header">
                     <h3 class="mb-0">{{ quiz.title }}</h3>
                     {% if quiz.time_limit %}
-                    <div class="text-muted">Time Remaining: <span id="timer">{{ time_remaining }}</span></div>
+                    <div class="text-muted">Time Remaining: <span id="timer" class="timeout-message">{{ time_remaining }}</span></div>
                     {% endif %}
                 </div>
                 
@@ -41,7 +41,7 @@
                             <div class="choices">
                                 {% for choice in current_question.choices.all %}
                                 <div class="form-check mb-2">
-                                    <input class="form-check-input answer-input" type="radio" name="question_{{ current_question.id }}" id="choice_{{ choice.id }}" value="{{ choice.id }}" required>
+                                    <input class="form-check-input answer-input" type="radio" name="question_{{ current_question.id }}" id="choice_{{ choice.id }}" value="{{ choice.text }}" required>
                                     <label class="form-check-label" for="choice_{{ choice.id }}">
                                         {{ choice.text }}
                                     </label>
@@ -61,7 +61,7 @@
                                 {% if next_question is not None %}
                                 <a href="?question={{ next_question }}" class="btn btn-primary next-btn">Next Question</a>
                                 {% else %}
-                                <button type="submit" class="btn btn-success">Submit Quiz</button>
+                                <button type="submit" class="btn btn-success submit-answer-btn">Submit Quiz</button>
                                 {% endif %}
                             </div>
                         </div>
@@ -78,6 +78,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const quizForm = document.getElementById('quiz-form');
         const allAnswers = document.getElementById('all-answers');
+        const timer = document.getElementById('timer');
         
         // Load saved answers from localStorage
         const quizId = quizForm.dataset.quizId;
@@ -103,66 +104,55 @@
                     savedAnswers[answerIndex].choice_id = choiceId;
                 } else {
                     savedAnswers.push({
-                        question_id: parseInt(questionId),
-                        choice_id: parseInt(choiceId)
+                        question_id: questionId,
+                        choice_id: choiceId
                     });
                 }
                 
                 // Save to localStorage
                 localStorage.setItem(`quiz_${quizId}_answers`, JSON.stringify(savedAnswers));
-                console.log('Saved answer:', { questionId, choiceId });
             });
         });
         
         // Handle form submission
-        quizForm.addEventListener('submit', async function(e) {
+        quizForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Get all saved answers
-            const answers = JSON.parse(localStorage.getItem(`quiz_${quizId}_answers`) || '[]');
-            console.log('Submitting answers:', answers);
+            // Create hidden inputs for all saved answers
+            savedAnswers.forEach(answer => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = `answer_${answer.question_id}`;
+                input.value = answer.choice_id;
+                allAnswers.appendChild(input);
+            });
             
-            if (!answers.length) {
-                alert('Please answer at least one question before submitting.');
-                return;
-            }
+            // Clear saved answers
+            localStorage.removeItem(`quiz_${quizId}_answers`);
             
-            const submissionData = {
-                answers: answers,
-                metadata: {
-                    submitted_at: new Date().toISOString()
+            // Submit form
+            this.submit();
+        });
+        
+        // Timer functionality
+        if (timer) {
+            let timeLeft = parseInt(timer.textContent.split(':')[0]) * 60 + parseInt(timer.textContent.split(':')[1]);
+            
+            const updateTimer = () => {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timer.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    quizForm.submit();
                 }
+                timeLeft--;
             };
             
-            try {
-                console.log('Submitting quiz...');
-                // Submit form with fetch
-                const response = await fetch(window.location.href, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                    },
-                    body: JSON.stringify(submissionData)
-                });
-                
-                const result = await response.json();
-                console.log('Submission result:', result);
-                
-                if (result.success) {
-                    // Clear saved answers
-                    localStorage.removeItem(`quiz_${quizId}_answers`);
-                    
-                    // Redirect to results page
-                    window.location.href = result.redirect_url;
-                } else {
-                    alert(result.error || 'An error occurred while submitting the quiz.');
-                }
-            } catch (error) {
-                console.error('Error submitting quiz:', error);
-                alert('An error occurred while submitting the quiz. Please try again.');
-            }
-        });
+            const interval = setInterval(updateTimer, 1000);
+            updateTimer();
+        }
     });
 </script>
-{% endblock extra_js %}
+{% endblock %}

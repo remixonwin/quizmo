@@ -3,7 +3,7 @@
 {% block help_description %}Minnesota DMV Practice Quiz - Study Materials and Resources{% endblock %}
 
 {% block help_title %}Study Materials{% endblock %}
-{% block page_title %}Study Materials{% endblock %}
+{% block help_heading %}Study Materials{% endblock %}
 
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'quiz:help' %}">Help Center</a></li>
@@ -18,9 +18,11 @@
             <div class="card-body">
                 <h2 class="h5 card-title">{{ material.title }}</h2>
                 <p class="card-text">{{ material.description }}</p>
-                <a href="{{ material.link }}" class="btn btn-primary stretched-link" target="_blank" rel="noopener">
+                {% if material.link %}
+                <a href="{{ material.link }}" class="btn btn-primary stretched-link" target="_blank" rel="noopener" aria-label="View {{ material.title }}">
                     <i class="fas fa-book me-2"></i>View Material
                 </a>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -49,7 +51,7 @@
 
 <!-- Print-friendly version -->
 <div class="d-print-none text-end mt-4">
-    <button onclick="window.print()" class="btn btn-secondary">
+    <button onclick="window.print()" class="btn btn-secondary" aria-label="Print study materials">
         <i class="fas fa-print me-2"></i>Print Study Materials
     </button>
 </div>

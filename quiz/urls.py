@@ -2,7 +2,6 @@
 URL configuration for quiz app.
 """
 from django.urls import path
-from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
@@ -40,9 +39,22 @@ urlpatterns = [
     path('verify-email/<str:uidb64>/<str:token>/', verify_email_view, name='verify_email'),
     path('logout/', logout_view, name='logout'),
     path('password-reset/', password_reset_view, name='password_reset'),
-    path('password-reset-done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
-    path('password-reset-confirm/<uidb64>/<token>/', password_reset_confirm_view, name='password_reset_confirm'),
-    path('password-reset-complete/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
+    path('password-reset/done/',
+        TemplateView.as_view(
+            template_name='quiz/auth/password_reset_done.html'
+        ),
+        name='password_reset_done'
+    ),
+    path('password-reset-confirm/<uidb64>/<token>/',
+        password_reset_confirm_view,
+        name='password_reset_confirm'
+    ),
+    path('password-reset-complete/',
+        TemplateView.as_view(
+            template_name='quiz/auth/password_reset_complete.html'
+        ),
+        name='password_reset_complete'
+    ),
     
     # Profile and Dashboard URLs
     path('profile/', profile, name='profile'),
@@ -74,6 +86,7 @@ handler403 = 'quiz.views.error_views.handler403'
 handler404 = 'quiz.views.error_views.handler404'
 handler500 = 'quiz.views.error_views.handler500'
 
-# Serve media files in development
+# Add static files in development
 if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

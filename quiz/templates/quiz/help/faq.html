@@ -1,9 +1,8 @@
 {% extends "quiz/help/help_base.html" %}
 
-{% block help_description %}Minnesota DMV Practice Quiz - Frequently Asked Questions and Answers{% endblock %}
+{% block help_description %}Minnesota DMV Practice Quiz - Frequently Asked Questions{% endblock %}
 
 {% block help_title %}Frequently Asked Questions{% endblock %}
-{% block page_title %}Frequently Asked Questions{% endblock %}
 
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'quiz:help' %}">Help Center</a></li>
@@ -11,17 +10,29 @@
 {% endblock %}
 
 {% block help_content %}
+<div class="help-search mb-4" role="search">
+    <form method="get" action="{% url 'quiz:help_search' %}" class="search-form">
+        <div class="input-group">
+            <input type="text" class="form-control" name="q" value="{{ search_query }}"
+                placeholder="Search FAQs..." aria-label="Search frequently asked questions">
+            <button class="btn btn-primary" type="submit" aria-label="Search FAQs">
+                <i class="fas fa-search me-1" aria-hidden="true"></i>Search
+            </button>
+        </div>
+    </form>
+</div>
+
 <div class="accordion" id="faqAccordion">
-    {% for faq in faqs %}
+    {% for category in faqs %}
     <div class="accordion-item">
         <h2 class="accordion-header" id="heading{{ forloop.counter }}">
             <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" 
                     type="button" 
                     data-bs-toggle="collapse" 
-                    data-bs-target="#collapse{{ forloop.counter }}" 
-                    aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" 
+                    data-bs-target="#collapse{{ forloop.counter }}"
+                    aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
                     aria-controls="collapse{{ forloop.counter }}">
-                {{ faq.question }}
+                {{ category.category }}
             </button>
         </h2>
         <div id="collapse{{ forloop.counter }}" 
@@ -29,21 +40,26 @@
              aria-labelledby="heading{{ forloop.counter }}" 
              data-bs-parent="#faqAccordion">
             <div class="accordion-body">
-                {{ faq.answer|safe }}
+                {% for qa in category.questions %}
+                <div class="mb-4">
+                    <h3 class="h5 mb-2">{{ qa.question }}</h3>
+                    <div class="ps-3">{{ qa.answer|safe }}</div>
+                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
     {% empty %}
     <div class="alert alert-info">
-        No FAQ items available at the moment. Please check back later.
+        No FAQs available at the moment. Please check back later.
     </div>
     {% endfor %}
 </div>
 
 <!-- Print-friendly version -->
 <div class="d-print-none text-end mt-4">
-    <button onclick="window.print()" class="btn btn-secondary">
-        <i class="fas fa-print me-2"></i>Print FAQ
+    <button onclick="window.print()" class="btn btn-secondary" aria-label="Print frequently asked questions">
+        <i class="fas fa-print me-2" aria-hidden="true"></i>Print FAQs
     </button>
 </div>
 {% endblock %}

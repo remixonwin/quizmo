@@ -12,7 +12,7 @@ T = TypeVar('T', bound=models.Model)
 class TimestampedModel(models.Model):
     """Base model with timestamps."""
     
-    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True, null=True)
     
     class Meta:

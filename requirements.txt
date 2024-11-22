@@ -47,6 +47,11 @@ faker>=20.1.0
 coverage>=7.3.2
 djangorestframework>=3.14.0
 
+# UI Testing
+selenium==4.16.0
+webdriver-manager==4.0.1
+pytest-selenium==4.1.0
+
 # Development
 black==23.12.1
 flake8==6.1.0

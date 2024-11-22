@@ -3,16 +3,19 @@
 {% block help_description %}Minnesota DMV Practice Quiz - Help Center and Support{% endblock %}
 
 {% block help_title %}Help Center{% endblock %}
-{% block page_title %}Help Center{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active" aria-current="page">Help Center</li>
+{% endblock %}
 
 {% block help_content %}
-<div class="help-search mb-4">
+<div class="help-search mb-4" role="search">
     <form method="get" action="{% url 'quiz:help' %}" class="search-form">
         <div class="input-group">
             <input type="text" class="form-control" name="search" value="{{ search_query }}"
                 placeholder="Search help topics..." aria-label="Search help topics">
-            <button class="btn btn-primary" type="submit">
-                <i class="fas fa-search me-1"></i>Search
+            <button class="btn btn-primary" type="submit" aria-label="Search help topics">
+                <i class="fas fa-search me-1" aria-hidden="true"></i>Search
             </button>
         </div>
     </form>
@@ -32,8 +35,8 @@
                     <p class="mb-0">{{ step.description }}</p>
                 </div>
                 {% endfor %}
-                <a href="{% url 'quiz:help_quick_start' %}" class="btn btn-primary mt-3">
-                    <i class="fas fa-arrow-right me-2"></i>View Full Guide
+                <a href="{% url 'quiz:help_quick_start' %}" class="btn btn-primary mt-3" aria-label="View full quick start guide">
+                    <i class="fas fa-arrow-right me-2" aria-hidden="true"></i>View Full Guide
                 </a>
             </div>
         </div>
@@ -52,45 +55,32 @@
                     <p class="mb-0">{{ material.description }}</p>
                 </div>
                 {% endfor %}
-                <a href="{% url 'quiz:help_study_materials' %}" class="btn btn-primary mt-3">
-                    <i class="fas fa-book me-2"></i>View All Materials
+                <a href="{% url 'quiz:help_study_materials' %}" class="btn btn-primary mt-3" aria-label="View all study materials">
+                    <i class="fas fa-book me-2" aria-hidden="true"></i>View All Materials
                 </a>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- FAQ Section -->
+<!-- FAQ Preview -->
+<div class="row mt-4">
     <div class="col-12">
         <div class="card responsive-card">
             <div class="card-header">
                 <h2 class="h5 mb-0">Frequently Asked Questions</h2>
             </div>
             <div class="card-body">
-                <div class="accordion" id="helpFaqAccordion">
-                    {% for faq in faqs|slice:":5" %}
-                    <div class="accordion-item">
-                        <h3 class="accordion-header" id="faqHeading{{ forloop.counter }}">
-                            <button class="accordion-button collapsed" type="button" 
-                                    data-bs-toggle="collapse" 
-                                    data-bs-target="#faqCollapse{{ forloop.counter }}"
-                                    aria-expanded="false" 
-                                    aria-controls="faqCollapse{{ forloop.counter }}">
-                                {{ faq.question }}
-                            </button>
-                        </h3>
-                        <div id="faqCollapse{{ forloop.counter }}" 
-                             class="accordion-collapse collapse" 
-                             aria-labelledby="faqHeading{{ forloop.counter }}" 
-                             data-bs-parent="#helpFaqAccordion">
-                            <div class="accordion-body">
-                                {{ faq.answer|safe }}
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
+                {% for category in faqs|slice:":1" %}
+                {% for qa in category.questions|slice:":3" %}
+                <div class="mb-3">
+                    <h3 class="h6">{{ qa.question }}</h3>
+                    <p class="mb-0">{{ qa.answer }}</p>
                 </div>
-                <a href="{% url 'quiz:help_faq' %}" class="btn btn-primary mt-3">
-                    <i class="fas fa-question-circle me-2"></i>View All FAQs
+                {% endfor %}
+                {% endfor %}
+                <a href="{% url 'quiz:help_faq' %}" class="btn btn-primary mt-3" aria-label="View all frequently asked questions">
+                    <i class="fas fa-question-circle me-2" aria-hidden="true"></i>View All FAQs
                 </a>
             </div>
         </div>

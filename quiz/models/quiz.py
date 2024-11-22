@@ -19,6 +19,7 @@ from django.core.exceptions import ValidationError
 from decimal import Decimal
 from django.utils.text import slugify
 import uuid
+from .question import Question
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -70,8 +71,9 @@ class QuizStats:
             'completion_rate': self.completion_rate
         }
 
-class Quiz(BaseModel, TimestampedModel, OrderedMixin, CachedMixin):
+class Quiz(TimestampedModel, OrderedMixin, CachedMixin):
     """Quiz model."""
+    
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     slug = models.SlugField(max_length=255, unique=True, blank=True)
@@ -90,7 +92,7 @@ class Quiz(BaseModel, TimestampedModel, OrderedMixin, CachedMixin):
     answers_at_end = models.BooleanField(default=True)
     metadata = models.JSONField(default=dict, blank=True)
     image = models.ImageField(upload_to='quiz_images/', null=True, blank=True)
-    
+
     class Meta:
         verbose_name = 'Quiz'
         verbose_name_plural = 'Quizzes'
@@ -146,48 +148,16 @@ class Quiz(BaseModel, TimestampedModel, OrderedMixin, CachedMixin):
         best_attempt = self.attempts.filter(user=user).order_by('-score').first()
         return best_attempt.score if best_attempt else None
 
-class Question(models.Model):
-    """Question model."""
-    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='questions')
-    text = models.TextField()
-    explanation = models.TextField(blank=True, help_text='Explanation shown after the question is answered')
-    order = models.IntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    metadata = models.JSONField(default=dict, blank=True)
-    
-    class Meta:
-        ordering = ['order', 'created_at']
-    
-    def __str__(self):
-        return self.text[:50]
-
-class Choice(models.Model):
-    """Choice model for quiz questions."""
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='choices')
-    text = models.CharField(max_length=255)
-    is_correct = models.BooleanField(default=False)
-    explanation = models.TextField(blank=True)
-    order = models.IntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    metadata = models.JSONField(default=dict, blank=True)
-    
-    class Meta:
-        ordering = ['order']
-    
-    def __str__(self):
-        return self.text
-
-class QuizAttempt(models.Model):
+class QuizAttempt(TimestampedModel):
     """Model to track quiz attempts."""
+    
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='attempts')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quiz_attempts')
     score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    started_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(default=timezone.now)
     completed_at = models.DateTimeField(null=True, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
-    
+
     class Meta:
         ordering = ['-started_at']
     
@@ -204,11 +174,12 @@ class QuizAttempt(models.Model):
             return (self.completed_at - self.started_at).total_seconds()
         return None
 
-class QuizAnswer(models.Model):
+class QuizAnswer(TimestampedModel):
     """Model to store user's answers to quiz questions."""
+    
     attempt = models.ForeignKey(QuizAttempt, on_delete=models.CASCADE, related_name='answers')
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
+    choice = models.ForeignKey('quiz.Choice', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     metadata = models.JSONField(default=dict, blank=True)

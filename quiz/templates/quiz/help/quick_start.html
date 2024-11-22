@@ -3,37 +3,76 @@
 {% block help_description %}Minnesota DMV Practice Quiz - Quick Start Guide{% endblock %}
 
 {% block help_title %}Quick Start Guide{% endblock %}
-{% block page_title %}Quick Start Guide{% endblock %}
+{% block help_heading %}Quick Start Guide{% endblock %}
 
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'quiz:help' %}">Help Center</a></li>
-<li class="breadcrumb-item active" aria-current="page">Quick Start</li>
+<li class="breadcrumb-item active" aria-current="page">Quick Start Guide</li>
 {% endblock %}
 
 {% block help_content %}
 <div class="row">
-    {% for step in quick_start %}
-    <div class="col-md-6 col-lg-4 mb-4">
+    {% for guide in quick_start_guide %}
+    <div class="col-md-6 mb-4">
         <div class="card h-100 responsive-card">
             <div class="card-body">
-                <h2 class="h5 card-title">{{ step.title }}</h2>
-                <p class="card-text">{{ step.description }}</p>
+                <h2 class="h5 card-title">{{ guide.title }}</h2>
+                <p class="card-text">{{ guide.description }}</p>
+                <div class="mt-3">
+                    <h3 class="h6">Steps:</h3>
+                    <ol class="ps-3">
+                        {% for step in guide.steps %}
+                        <li>{{ step }}</li>
+                        {% endfor %}
+                    </ol>
+                </div>
             </div>
         </div>
     </div>
     {% empty %}
     <div class="col-12">
         <div class="alert alert-info">
-            Quick start guide is currently being updated. Please check back later.
+            No quick start guide available at the moment. Please check back later.
         </div>
     </div>
     {% endfor %}
 </div>
 
+<div class="mt-5">
+    <h2 class="h4 mb-4">Common Questions</h2>
+    <div class="accordion" id="quickStartFAQ">
+        {% for faq in quick_start_faqs %}
+        <div class="accordion-item">
+            <h3 class="accordion-header" id="faqHeading{{ forloop.counter }}">
+                <button class="accordion-button collapsed" type="button" 
+                        data-bs-toggle="collapse" 
+                        data-bs-target="#faqCollapse{{ forloop.counter }}"
+                        aria-expanded="false" 
+                        aria-controls="faqCollapse{{ forloop.counter }}">
+                    {{ faq.question }}
+                </button>
+            </h3>
+            <div id="faqCollapse{{ forloop.counter }}" 
+                 class="accordion-collapse collapse" 
+                 aria-labelledby="faqHeading{{ forloop.counter }}" 
+                 data-bs-parent="#quickStartFAQ">
+                <div class="accordion-body">
+                    {{ faq.answer|safe }}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="alert alert-info">
+            No FAQs available at the moment. Please check back later.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
 <!-- Print-friendly version -->
 <div class="d-print-none text-end mt-4">
-    <button onclick="window.print()" class="btn btn-secondary">
-        <i class="fas fa-print me-2"></i>Print Quick Start Guide
+    <button onclick="window.print()" class="btn btn-secondary" aria-label="Print quick start guide">
+        <i class="fas fa-print me-2"></i>Print Guide
     </button>
 </div>
 {% endblock %}

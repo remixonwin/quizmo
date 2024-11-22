@@ -22,6 +22,7 @@ class AuthResult:
     data: Optional[Dict[str, Any]] = None
     redirect_to: Optional[str] = None
     template: Optional[str] = None
+    status_code: Optional[int] = None
 
 def compose(*functions: Callable) -> Callable:
     """Compose multiple functions from right to left."""
@@ -60,11 +61,22 @@ def handle_auth_result(request: HttpRequest, result: AuthResult) -> HttpResponse
             redirect_url = reverse(redirect_url)
         elif request.GET.get('next'):  # Honor next parameter
             redirect_url = request.GET.get('next')
-        return redirect(redirect_url)
+        response = redirect(redirect_url)
+        if result.status_code:
+            response.status_code = result.status_code
+        return response
     elif result.template:
         context = result.data or {}
-        return render(request, result.template, context)
-    return redirect('quiz:dashboard')
+        response = render(request, result.template, context)
+        if result.status_code:
+            response.status_code = result.status_code
+        return response
+    
+    # Default redirect to dashboard
+    response = redirect('quiz:dashboard')
+    if result.status_code:
+        response.status_code = result.status_code
+    return response
 
 def cache_get(key: str, default: T = None) -> T:
     """Functional wrapper for cache.get."""
@@ -121,7 +133,8 @@ def validate_request(validator: Callable[[HttpRequest], Tuple[bool, Optional[str
                 return handle_auth_result(request, AuthResult(
                     success=False,
                     message=error or '',
-                    template=getattr(settings, 'DEFAULT_ERROR_TEMPLATE', 'quiz/auth/error.html')
+                    template=getattr(settings, 'DEFAULT_ERROR_TEMPLATE', 'quiz/auth/error.html'),
+                    status_code=400  # Bad Request for validation errors
                 ))
             return func(request, *args, **kwargs)
         return wrapper
@@ -140,6 +153,7 @@ def with_transaction(func: Callable[[], AuthResult]) -> Callable[[], AuthResult]
             return AuthResult(
                 success=False,
                 message=str(e),
-                template=getattr(settings, 'DEFAULT_ERROR_TEMPLATE', 'quiz/auth/error.html')
+                template=getattr(settings, 'DEFAULT_ERROR_TEMPLATE', 'quiz/auth/error.html'),
+                status_code=500  # Internal Server Error for exceptions
             )
     return wrapper

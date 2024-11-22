@@ -88,9 +88,11 @@
                     </div>
                     
                     <div class="d-grid gap-2">
-                        <a href="{% url 'quiz:quiz_take' quiz.id %}" class="btn btn-primary btn-lg">
+                        {% if can_start %}
+                        <a href="{% url 'quiz:quiz_take' quiz.id %}" class="btn btn-primary btn-lg start-quiz-btn">
                             <i class="fas fa-play-circle me-2"></i>Start Test
                         </a>
+                        {% endif %}
                         <a href="{% url 'quiz:help_study_materials' %}" class="btn btn-outline-primary">
                             <i class="fas fa-book me-2"></i>Study Materials
                         </a>

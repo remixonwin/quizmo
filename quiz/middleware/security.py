@@ -79,9 +79,13 @@ class SecurityMiddleware(MiddlewareMixin):
     
     def process_response(self, request, response):
         """Process outgoing response."""
+        # Skip processing if response is not an HttpResponse object
+        if not hasattr(response, 'headers'):
+            return response
+
         # Add security headers
         for header, value in self.SECURE_HEADERS.items():
-            if header not in response:
+            if header not in response.headers:
                 response[header] = value
         
         # Add HSTS header in production

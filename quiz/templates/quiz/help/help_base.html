@@ -3,6 +3,8 @@
 {% block title %}{% block help_title %}{% endblock %} - Minnesota DMV Practice Quiz{% endblock %}
 
 {% block meta %}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="{% block help_description %}Minnesota DMV Practice Quiz - Help Center{% endblock %}">
 <meta name="keywords" content="Minnesota DMV, Practice Quiz, Help, FAQ, Study Guide">
 {% endblock %}
@@ -83,12 +85,12 @@
         <!-- Breadcrumb -->
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item"><a href="/" aria-current="false">Home</a></li>
                 {% block breadcrumb %}{% endblock %}
             </ol>
         </nav>
 
-        <h1 class="mb-4">{% block page_title %}{% endblock %}</h1>
+        <h1 class="mb-4">{{ help_heading }}</h1>
 
         {% block help_content %}{% endblock %}
     </div>

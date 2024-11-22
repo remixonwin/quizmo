@@ -151,6 +151,121 @@ class HelpService:
         return content
     
     @classmethod
+    def get_study_tips(cls) -> List[Dict[str, str]]:
+        """Get study tips with error handling."""
+        cache_key = f"{cls.CACHE_PREFIX}_study_tips"
+        tips = cache.get(cache_key)
+        
+        if tips is None:
+            try:
+                tips = [
+                    {
+                        'title': 'Read the Manual',
+                        'description': 'Start by thoroughly reading the Minnesota Driver\'s Manual. It contains all the information you need to know.'
+                    },
+                    {
+                        'title': 'Take Practice Tests',
+                        'description': 'Practice tests help you identify areas where you need more study and get comfortable with the test format.'
+                    },
+                    {
+                        'title': 'Focus on Road Signs',
+                        'description': 'Pay special attention to road signs and their meanings. They\'re a crucial part of the test.'
+                    },
+                    {
+                        'title': 'Review Mistakes',
+                        'description': 'After each practice test, review your incorrect answers and understand why they were wrong.'
+                    },
+                    {
+                        'title': 'Study Regularly',
+                        'description': 'Set aside regular time for studying rather than trying to cram everything at once.'
+                    }
+                ]
+                cache.set(cache_key, tips, cls.CACHE_TIMEOUT)
+                logger.info("Study tips cached successfully")
+            except Exception as e:
+                logger.error(f"Error getting study tips: {e}")
+                raise HelpServiceError("Unable to retrieve study tips") from e
+        
+        return tips
+
+    @classmethod
+    def get_contact_info(cls) -> Dict[str, str]:
+        """Get contact information with error handling."""
+        cache_key = f"{cls.CACHE_PREFIX}_contact_info"
+        info = cache.get(cache_key)
+        
+        if info is None:
+            try:
+                info = {
+                    'email': settings.CONTACT_EMAIL,
+                    'hours': 'Monday - Friday, 9:00 AM - 5:00 PM CST',
+                    'response_time': '24-48 hours',
+                    'phone': settings.SUPPORT_PHONE if hasattr(settings, 'SUPPORT_PHONE') else None,
+                    'additional_info': 'For urgent matters, please include "URGENT" in your email subject line.'
+                }
+                cache.set(cache_key, info, cls.CACHE_TIMEOUT)
+                logger.info("Contact information cached successfully")
+            except Exception as e:
+                logger.error(f"Error getting contact information: {e}")
+                raise HelpServiceError("Unable to retrieve contact information") from e
+        
+        return info
+
+    @classmethod
+    def search_help(cls, query: str) -> List[Dict[str, Any]]:
+        """Search help content with error handling."""
+        if not cls.MIN_QUERY_LENGTH <= len(query) <= cls.MAX_QUERY_LENGTH:
+            raise InvalidQueryError(f"Query must be between {cls.MIN_QUERY_LENGTH} and {cls.MAX_QUERY_LENGTH} characters")
+
+        try:
+            # Normalize query
+            query = query.lower().strip()
+            results = []
+
+            # Search in help sections
+            for section in cls.get_help_sections():
+                if (query in section['title'].lower() or 
+                    query in section['description'].lower() or 
+                    any(query in tag.lower() for tag in section['tags'])):
+                    results.append({
+                        'type': 'section',
+                        'title': section['title'],
+                        'description': section['description'],
+                        'url': section['url']
+                    })
+
+            # Search in FAQs
+            for category in settings.HELP_FAQS:
+                for qa in category['questions']:
+                    if (query in qa['question'].lower() or 
+                        query in qa['answer'].lower()):
+                        results.append({
+                            'type': 'faq',
+                            'category': category['category'],
+                            'question': qa['question'],
+                            'answer': qa['answer']
+                        })
+
+            # Search in study materials
+            for material in settings.HELP_STUDY_MATERIALS:
+                if (query in material['title'].lower() or 
+                    query in material['description'].lower()):
+                    result = {
+                        'type': 'material',
+                        'title': material['title'],
+                        'description': material['description']
+                    }
+                    if 'link' in material:
+                        result['link'] = material['link']
+                    results.append(result)
+
+            return results
+
+        except Exception as e:
+            logger.error(f"Error searching help content: {e}")
+            raise HelpServiceError("Unable to search help content") from e
+
+    @classmethod
     def search_help_content(cls, query: str) -> List[Dict[str, Any]]:
         """Search through help content with improved relevance and highlighting."""
         if not cls._validate_query(query):

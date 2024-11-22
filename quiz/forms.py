@@ -35,7 +35,7 @@ class CustomUserCreationForm(UserCreationForm):
             raise ValidationError(_("This email domain is not allowed for registration."))
             
         if User.objects.filter(email__iexact=email).exists():
-            raise ValidationError(_("A user with this email already exists."))
+            raise ValidationError(_("This email address is already in use"))
             
         return email
         
@@ -60,7 +60,7 @@ class CustomUserCreationForm(UserCreationForm):
             if isinstance(e.messages, list):
                 for error in e.messages:
                     if 'too short' in error.lower():
-                        error_messages.append('Password must be at least 8 characters')
+                        error_messages.append('This password is too short')
                     else:
                         error_messages.append(error)
             else:
@@ -98,7 +98,7 @@ class SetPasswordForm(BaseSetPasswordForm):
         """Validate new password strength."""
         password1 = self.cleaned_data.get('new_password1')
         try:
-            validate_password(password1, self.instance)
+            validate_password(password1, self.user)  # Use self.user instead of self.instance
             
             # Additional custom password complexity checks
             if not any(c.isupper() for c in password1):
@@ -115,7 +115,7 @@ class SetPasswordForm(BaseSetPasswordForm):
             if isinstance(e.messages, list):
                 for error in e.messages:
                     if 'too short' in error.lower():
-                        error_messages.append('Password must be at least 8 characters')
+                        error_messages.append('This password is too short')
                     else:
                         error_messages.append(error)
             else:

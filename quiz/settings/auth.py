@@ -53,6 +53,15 @@ EMAIL_VERIFIED_MESSAGE = 'Your email has been verified successfully. You can now
 BLACKLISTED_DOMAIN_MESSAGE = 'This email domain is not allowed for registration.'
 PASSWORD_RESET_EMAIL_SENT_MESSAGE = 'If an account exists with this email, you will receive password reset instructions.'
 
+# Password complexity messages
+PASSWORD_MISMATCH_MESSAGE = 'The two password fields do not match.'
+PASSWORD_COMPLEXITY_MESSAGE = 'Password must contain at least one uppercase letter, one number, and be at least 8 characters long.'
+PASSWORD_RESET_LINK_EXPIRED_MESSAGE = 'Password reset link has expired. Please request a new one.'
+PASSWORD_RESET_LINK_INVALID_MESSAGE = 'Invalid password reset link. Please request a new one.'
+EMAIL_EXISTS_MESSAGE = 'This email address is already registered.'
+USERNAME_EXISTS_MESSAGE = 'This username is already taken.'
+EMAIL_DOMAIN_ERROR_MESSAGE = 'Please use a valid email domain.'
+
 # Password Reset Settings
 PASSWORD_RESET_TIMEOUT = 3600  # 1 hour
 PASSWORD_RESET_TOKEN_LENGTH = 32
