@@ -11,8 +11,7 @@ from django.core.exceptions import ValidationError
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
-from ..functional_utils import AuthResult, with_logging, validate_request
-from ..decorators import with_transaction
+from quiz.utils.functional_utils import AuthResult, with_logging, validate_request, with_transaction
 from .verification import send_verification_email
 
 import logging

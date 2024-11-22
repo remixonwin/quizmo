@@ -1,0 +1,52 @@
+{
+    "monitoring": {
+        "enabled": true,
+        "collect_interval": 300,
+        "thresholds": {
+            "cpu": {
+                "warning": 75,
+                "critical": 90
+            },
+            "memory": {
+                "warning": 75,
+                "critical": 90
+            },
+            "disk": {
+                "warning": 75,
+                "critical": 90
+            }
+        }
+    },
+    "logging": {
+        "rotation": {
+            "max_size": 5242880,
+            "backup_count": 5
+        },
+        "archival": {
+            "enabled": true,
+            "days_threshold": 30,
+            "compression": true
+        },
+        "cleanup": {
+            "enabled": true,
+            "days_threshold": 90
+        }
+    },
+    "metrics": {
+        "collection": {
+            "enabled": true,
+            "retention_days": 7
+        },
+        "storage": {
+            "type": "file",
+            "path": "logs/metrics"
+        }
+    },
+    "health_check": {
+        "endpoints": {
+            "basic": "/health/",
+            "detailed": "/health/detailed/"
+        },
+        "response_timeout": 30
+    }
+}

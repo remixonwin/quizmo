@@ -9,14 +9,14 @@ from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.urls import reverse
-from ..functional_utils import AuthResult, with_logging, validate_request
-from ..decorators import with_transaction
+from quiz.utils.functional_utils import AuthResult, with_logging, validate_request, with_transaction
 
 import logging
+import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -37,29 +37,63 @@ def decode_user_id(uidb64: str) -> Optional[int]:
 
 def get_verification_url(request: HttpRequest, user: User) -> str:
     """Generate the complete verification URL."""
-    token = generate_verification_token(user)
-    uidb64 = encode_user_id(user)
-    return request.build_absolute_uri(
-        reverse('quiz:verify_email', kwargs={'uidb64': uidb64, 'token': token})
-    )
+    try:
+        token = generate_verification_token(user)
+        uidb64 = encode_user_id(user)
+        verification_url = request.build_absolute_uri(
+            reverse('quiz:verify_email', kwargs={'uidb64': uidb64, 'token': token})
+        )
+        logger.info(f"Generated verification URL: {verification_url}")
+        return verification_url
+    except Exception as e:
+        logger.error(f"Error generating verification URL: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise
 
 def send_verification_email(request: HttpRequest, user: User) -> None:
     """Send verification email to the user."""
-    verification_url = get_verification_url(request, user)
-    subject = 'Verify your email address'
-    message = render_to_string('quiz/auth/email/verification_email.html', {
-        'user': user,
-        'verification_url': verification_url,
-        'site_name': settings.SITE_NAME,
-    })
-    
-    send_mail(
-        subject,
-        message,
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email],
-        fail_silently=False
-    )
+    try:
+        verification_url = get_verification_url(request, user)
+        subject = 'Verify your email address'
+        context = {
+            'user': user,
+            'verification_url': verification_url,
+            'site_name': settings.SITE_NAME,
+        }
+        
+        # Log the context for debugging
+        logger.info(f"Email context: {context}")
+        
+        # First try rendering the template
+        try:
+            message = render_to_string('quiz/auth/email/verification_email.html', context)
+            logger.info("Successfully rendered email template")
+        except Exception as e:
+            logger.error(f"Error rendering email template: {str(e)}")
+            logger.error(traceback.format_exc())
+            raise
+        
+        # Create EmailMessage object for more control
+        email = EmailMessage(
+            subject=subject,
+            body=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[user.email],
+        )
+        email.content_subtype = "html"  # Set content type to HTML
+        
+        # Log email settings
+        logger.info(f"Email settings: BACKEND={settings.EMAIL_BACKEND}, HOST={settings.EMAIL_HOST}, PORT={settings.EMAIL_PORT}")
+        logger.info(f"Sending email to: {user.email}")
+        
+        # Send the email
+        email.send(fail_silently=False)
+        logger.info("Email sent successfully")
+        
+    except Exception as e:
+        logger.error(f"Failed to send verification email: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise
 
 def verify_token(uidb64: str, token: str) -> AuthResult:
     """Verify the user's email verification token."""

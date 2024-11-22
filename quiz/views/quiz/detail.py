@@ -18,7 +18,7 @@ class QuizDetailView(QuizViewMixin, DetailView):
 
     def get_object(self, queryset=None):
         """Get quiz from cache or database."""
-        quiz_id = self.kwargs.get('pk')
+        quiz_id = self.kwargs.get('quiz_id')
         cache_key = f'quiz_detail_{quiz_id}'
         quiz = cache.get(cache_key)
         
@@ -54,6 +54,6 @@ class QuizDetailView(QuizViewMixin, DetailView):
         context.update({
             'question_count': len(questions),
             'time_limit': self.get_time_limit(),
-            'passing_score': quiz.passing_score
+            'passing_score': quiz.pass_mark
         })
         return context

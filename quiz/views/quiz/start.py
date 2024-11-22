@@ -17,15 +17,15 @@ logger = logging.getLogger(__name__)
 class QuizStartView(LoginRequiredMixin, QuizViewMixin, View):
     """Handle starting a quiz."""
     
-    def get(self, request: HttpRequest, pk: int) -> HttpResponse:
+    def get(self, request: HttpRequest, quiz_id: int) -> HttpResponse:
         """Handle GET request to start quiz."""
         try:
-            logger.info(f'Starting quiz {pk} for user {request.user.id}')
+            logger.info(f'Starting quiz {quiz_id} for user {request.user.id}')
             
             # Get quiz with prefetched data
             quiz = get_object_or_404(
                 Quiz.objects.prefetch_related('questions', 'questions__choices'),
-                id=pk
+                id=quiz_id
             )
             logger.info(f'Found quiz {quiz.id}: {quiz.title}')
             
@@ -35,7 +35,7 @@ class QuizStartView(LoginRequiredMixin, QuizViewMixin, View):
                 return redirect('quiz:quiz_list')
             
             # Check for existing attempts
-            existing_attempt = self.get_active_attempt(request.user, quiz.id)
+            existing_attempt = self.get_active_attempt(request.user, quiz_id)
             if existing_attempt:
                 logger.info(f'Found existing attempt {existing_attempt.id} for user {request.user.id}')
                 
@@ -43,17 +43,17 @@ class QuizStartView(LoginRequiredMixin, QuizViewMixin, View):
                 if self.handle_timeout(existing_attempt):
                     logger.info(f'Attempt {existing_attempt.id} has timed out')
                     messages.warning(request, 'Your previous quiz timed out and has been submitted.')
-                    return redirect('quiz:quiz_results', pk=existing_attempt.quiz_id)
+                    return redirect('quiz:quiz_results', quiz_id=existing_attempt.quiz_id)
                 
                 # Check for attempt on different quiz
-                if existing_attempt.quiz_id != pk:
+                if existing_attempt.quiz_id != quiz_id:
                     logger.warning(f'User has another quiz in progress: {existing_attempt.quiz_id}')
                     messages.error(request, 'You have another quiz in progress.')
                     return redirect('quiz:quiz_list')
                 
                 # Continue existing attempt
                 logger.info(f'Redirecting to existing attempt {existing_attempt.id}')
-                return redirect('quiz:quiz_take', pk=pk)
+                return redirect('quiz:quiz_take', quiz_id=quiz_id)
             
             # Get questions
             questions = quiz.questions.filter(is_active=True)
@@ -86,7 +86,7 @@ class QuizStartView(LoginRequiredMixin, QuizViewMixin, View):
             )
             logger.info(f'Created attempt {attempt.id} for quiz {quiz.id}')
             
-            return redirect('quiz:quiz_take', pk=pk)
+            return redirect('quiz:quiz_take', quiz_id=quiz_id)
             
         except Exception as e:
             return self.handle_quiz_error(
@@ -94,13 +94,13 @@ class QuizStartView(LoginRequiredMixin, QuizViewMixin, View):
                 f'An error occurred while starting the quiz: {str(e)}'
             )
     
-    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+    def post(self, request: HttpRequest, quiz_id: int) -> HttpResponse:
         """Handle POST request to start quiz."""
         try:
-            logger.info(f'Starting quiz {pk} for user {request.user.id}')
+            logger.info(f'Starting quiz {quiz_id} for user {request.user.id}')
             
             # Get quiz
-            quiz = get_object_or_404(Quiz, id=pk)
+            quiz = get_object_or_404(Quiz, id=quiz_id)
             
             # Check if quiz is active
             if not quiz.is_active:
@@ -127,7 +127,7 @@ class QuizStartView(LoginRequiredMixin, QuizViewMixin, View):
             )
             logger.info(f'Created attempt {attempt.id} for quiz {quiz.id}')
             
-            return redirect('quiz:quiz_take', pk=pk)
+            return redirect('quiz:quiz_take', quiz_id=quiz_id)
             
         except Exception as e:
             return self.handle_quiz_error(

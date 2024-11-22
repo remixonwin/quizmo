@@ -43,6 +43,44 @@ def setup_logging():
                 'class': 'logging.StreamHandler',
                 'formatter': 'verbose',
             },
+        },
+        'loggers': {
+            'django': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': True,
+            },
+            'quiz': {
+                'handlers': ['console'],
+                'level': getattr(settings, 'LOGLEVEL', 'INFO'),
+                'propagate': True,
+            },
+            'quiz.security': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'quiz.performance': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'quiz.auth': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+        },
+    }
+
+    # Create logs directory if it doesn't exist
+    logs_dir = os.path.join(settings.BASE_DIR, 'logs')
+    if not os.path.exists(logs_dir):
+        os.makedirs(logs_dir)
+
+    # Add file handlers if not in test mode
+    if not getattr(settings, 'TESTING', False):
+        logging_config['handlers'].update({
             'file': {
                 'level': 'INFO',
                 'class': 'logging.handlers.RotatingFileHandler',
@@ -67,44 +105,15 @@ def setup_logging():
                 'backupCount': 5,
                 'formatter': 'json',
             },
-        },
-        'loggers': {
-            'django': {
-                'handlers': ['console', 'file'],
-                'level': 'INFO',
-                'propagate': True,
-            },
-            'quiz': {
-                'handlers': ['console', 'file'],
-                'level': settings.LOGLEVEL,
-                'propagate': True,
-            },
-            'quiz.security': {
-                'handlers': ['security', 'console'],
-                'level': 'INFO',
-                'propagate': False,
-            },
-            'quiz.performance': {
-                'handlers': ['performance', 'console'],
-                'level': 'INFO',
-                'propagate': False,
-            },
-            'quiz.auth': {
-                'handlers': ['security', 'console'],
-                'level': 'INFO',
-                'propagate': False,
-            },
-        },
-    }
-    
-    # Create logs directory if it doesn't exist
-    logs_dir = os.path.join(settings.BASE_DIR, 'logs')
-    if not os.path.exists(logs_dir):
-        os.makedirs(logs_dir)
-    
-    # Configure logging
+        })
+        # Add file handlers to loggers
+        logging_config['loggers']['django']['handlers'].append('file')
+        logging_config['loggers']['quiz']['handlers'].append('file')
+        logging_config['loggers']['quiz.security']['handlers'].append('security')
+        logging_config['loggers']['quiz.performance']['handlers'].append('performance')
+        logging_config['loggers']['quiz.auth']['handlers'].append('security')
+
     logging.config.dictConfig(logging_config)
-    logger.info("Logging configuration initialized")
 
 def log_error(
     request: HttpRequest,
@@ -113,27 +122,29 @@ def log_error(
     extra: Optional[Dict[str, Any]] = None
 ) -> None:
     """Log an error with request context."""
-    log_data = {
-        'error_type': error.__class__.__name__,
+    if extra is None:
+        extra = {}
+    
+    error_data = {
+        'error_type': type(error).__name__,
         'error_message': str(error),
         'traceback': traceback.format_exc(),
         'request_path': request.path,
         'request_method': request.method,
-        'user_id': getattr(request.user, 'id', None),
-        'ip_address': request.META.get('REMOTE_ADDR'),
+        'user': str(request.user),
+        **extra
     }
     
-    if extra:
-        log_data.update(extra)
-    
-    getattr(logger, level)(json.dumps(log_data))
+    log_message = json.dumps(error_data)
+    logger_method = getattr(logger, level.lower(), logger.error)
+    logger_method(log_message)
 
 def log_function_call(func):
     """Decorator to log function calls."""
     @wraps(func)
     def wrapper(*args, **kwargs):
+        logger.debug(f'Calling {func.__name__} with args={args}, kwargs={kwargs}')
         try:
-            logger.debug(f'Calling {func.__name__} with args={args}, kwargs={kwargs}')
             result = func(*args, **kwargs)
             logger.debug(f'{func.__name__} completed successfully')
             return result
@@ -144,8 +155,10 @@ def log_function_call(func):
 
 def log_model_changes(sender, instance, created, **kwargs):
     """Log model changes."""
-    action = 'created' if created else 'updated'
-    logger.info(f'{sender.__name__} {instance.id} {action}')
+    if created:
+        logger.info(f'Created new {sender.__name__} instance: {instance}')
+    else:
+        logger.info(f'Updated {sender.__name__} instance: {instance}')
 
 # Set up loggers
 auth_logger = logging.getLogger('quiz.auth')

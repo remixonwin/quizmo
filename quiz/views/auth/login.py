@@ -9,42 +9,16 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.http import require_http_methods
-from django.core.cache import cache
 from django.conf import settings
-from ..functional_utils import AuthResult, with_logging, validate_request
-from ..decorators import with_transaction
+from quiz.utils.functional_utils import (
+    AuthResult, with_logging, validate_request, with_transaction,
+    get_client_ip, check_login_attempts, increment_login_attempts,
+    reset_login_attempts
+)
 
 import logging
 
 logger = logging.getLogger(__name__)
-
-def get_client_ip(request: HttpRequest) -> str:
-    """Get client IP address."""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        return x_forwarded_for.split(',')[0]
-    return request.META.get('REMOTE_ADDR')
-
-def check_login_attempts(ip_address: str) -> Tuple[bool, Optional[str]]:
-    """Check if IP is allowed to attempt login."""
-    key = f'login_attempts_{ip_address}'
-    attempts = cache.get(key, 0)
-    
-    if attempts >= settings.MAX_LOGIN_ATTEMPTS:
-        return False, 'Your account is temporarily locked due to too many failed attempts. Please try again later.'
-    
-    return True, None
-
-def increment_login_attempts(ip_address: str) -> None:
-    """Increment failed login attempts for IP."""
-    key = f'login_attempts_{ip_address}'
-    attempts = cache.get(key, 0)
-    cache.set(key, attempts + 1, settings.LOGIN_LOCKOUT_DURATION)
-
-def reset_login_attempts(ip_address: str) -> None:
-    """Reset failed login attempts for IP."""
-    key = f'login_attempts_{ip_address}'
-    cache.delete(key)
 
 def validate_login_data(data: Dict[str, str]) -> Tuple[bool, Optional[str]]:
     """Validate login form data."""

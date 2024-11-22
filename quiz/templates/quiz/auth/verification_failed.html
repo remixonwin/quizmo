@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Email Verification Failed{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Email Verification Failed</h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">We're sorry, but we couldn't verify your email address.</p>
+                    <p>This could be because:</p>
+                    <ul>
+                        <li>The verification link has expired</li>
+                        <li>The verification link was invalid</li>
+                        <li>Your email has already been verified</li>
+                    </ul>
+                    <p>Please try the following:</p>
+                    <ol>
+                        <li>Check if you're using the most recent verification link sent to your email</li>
+                        <li>Try logging in - your email might already be verified</li>
+                        <li>Request a new verification email from your profile settings</li>
+                    </ol>
+                    <div class="mt-4">
+                        <a href="{% url 'quiz:login' %}" class="btn btn-primary">Go to Login</a>
+                        <a href="{% url 'quiz:register' %}" class="btn btn-outline-secondary ml-2">Register New Account</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

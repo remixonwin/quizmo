@@ -3,13 +3,15 @@ Quiz results view.
 """
 from typing import Any, Dict
 from django.views.generic import DetailView
-from django.db.models import Prefetch, QuerySet, Count, Q
-from django.http import HttpRequest, Http404
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import get_object_or_404
+from django.db.models import Count, Avg, Prefetch, QuerySet, Q
+from django.utils import timezone
+from django.http import HttpRequest, Http404
 from django.core.cache import cache
 from django.db import models
 from .base import QuizViewMixin
-from ...models import QuizAttempt, UserAnswer, Question, Choice
+from ...models import QuizAttempt, QuizAnswer, Question, Choice
 import logging
 
 logger = logging.getLogger(__name__)
@@ -27,7 +29,7 @@ class QuizResultsView(LoginRequiredMixin, QuizViewMixin, DetailView):
         ).prefetch_related(
             Prefetch(
                 'answers',
-                queryset=UserAnswer.objects.select_related(
+                queryset=QuizAnswer.objects.select_related(
                     'question',
                     'choice'
                 ).prefetch_related(

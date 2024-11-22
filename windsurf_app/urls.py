@@ -8,7 +8,9 @@ from django.conf.urls.static import static
 from django.shortcuts import redirect
 from quiz.views.error_views import handler403, handler404, handler500
 from quiz.views.monitoring_views import health_check, database_health, cache_health
+from quiz.views.health_check import health_check, detailed_health_check
 from quiz.views import HelpView, FAQView
+from quiz.views.auth.redirects import login_redirect, register_redirect
 
 # Customize admin site
 admin.site.site_header = 'Quiz Administration'
@@ -22,12 +24,6 @@ handler404 = 'quiz.views.error_views.handler404'
 handler500 = 'quiz.views.error_views.handler500'
 
 # Redirect views
-def login_redirect(request):
-    next_url = request.GET.get('next', '/')
-    return redirect('quiz:login')
-
-def register_redirect(request):
-    return redirect('quiz:register')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -36,6 +32,7 @@ urlpatterns = [
     path('accounts/login/', login_redirect),  # Redirect /accounts/login/ to quiz:login
     path('accounts/register/', register_redirect),  # Redirect /accounts/register/ to quiz:register
     path('health/', health_check, name='health_check'),
+    path('health/detailed/', detailed_health_check, name='detailed_health_check'),
     path('health/db/', database_health, name='database_health'),
     path('health/cache/', cache_health, name='cache_health'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

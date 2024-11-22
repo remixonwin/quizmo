@@ -89,9 +89,9 @@ WSGI_APPLICATION = 'windsurf_app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'data/db/db.sqlite3',
         'TEST': {
-            'NAME': BASE_DIR / 'test_db.sqlite3',
+            'NAME': BASE_DIR / 'data/db/test_db.sqlite3',
         },
     } if DEBUG else {
         'ENGINE': 'django.db.backends.postgresql',
@@ -106,7 +106,7 @@ DATABASES = {
 if 'test' in sys.argv:
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'test_db.sqlite3',
+        'NAME': BASE_DIR / 'data/db/test_db.sqlite3',
     }
 
 
@@ -143,6 +143,9 @@ USE_I18N = True
 
 USE_TZ = True
 
+
+# Logging settings
+LOGLEVEL = os.getenv('LOGLEVEL', 'INFO')
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
@@ -199,6 +202,9 @@ CACHE_TIMEOUT = 3600  # 1 hour
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
 
+# Site settings
+SITE_NAME = 'Minnesota DMV Quiz'
+
 # Authentication settings
 LOGIN_URL = 'quiz:login'
 LOGIN_REDIRECT_URL = 'quiz:dashboard'
@@ -220,15 +226,85 @@ LOGIN_ATTEMPT_TIMEOUT = 300  # 5 minutes in seconds
 ACCOUNT_LOCKOUT_DURATION = 900  # Duration in seconds (15 minutes)
 
 # Email Settings
-EMAIL_BACKEND = os.environ.get(
-    'EMAIL_BACKEND',
-    'django.core.mail.backends.console.EmailBackend'
-)
-EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
-EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_SSL = False  # Make sure SSL is disabled when using TLS
+EMAIL_HOST_USER = 'remixonwin@gmail.com'
+EMAIL_HOST_PASSWORD = 'boydzfjsgeciwrjw'
+DEFAULT_FROM_EMAIL = 'remixonwin@gmail.com'
+
+# Configure logging to show email errors
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'quiz_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': str(BASE_DIR / 'logs/quiz.log'),
+            'maxBytes': 5242880,  # 5MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        'security_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': str(BASE_DIR / 'logs/security.log'),
+            'maxBytes': 1048576,  # 1MB
+            'backupCount': 10,
+            'formatter': 'verbose',
+        },
+        'performance_file': {
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': str(BASE_DIR / 'logs/performance.log'),
+            'when': 'midnight',
+            'interval': 1,
+            'backupCount': 30,
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['console', 'security_file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['console', 'security_file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'quiz': {
+            'handlers': ['console', 'quiz_file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'performance': {
+            'handlers': ['performance_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -267,48 +343,6 @@ QUIZ_FAQS = [
         'answer': 'Study the Minnesota Driver\'s Manual thoroughly, take our practice quizzes regularly, and focus on areas where you need improvement.'
     }
 ]
-
-# Logging level
-LOGLEVEL = os.getenv('DJANGO_LOG_LEVEL', 'INFO')
-
-# Logging Configuration
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
-        'file': {
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs' / 'quiz.log',
-            'formatter': 'verbose',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console', 'file'],
-            'level': LOGLEVEL,
-            'propagate': True,
-        },
-        'quiz': {
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-    },
-}
 
 # Create logs directory if it doesn't exist
 os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)

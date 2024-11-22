@@ -1,0 +1,53 @@
+{
+    "version": 1,
+    "disable_existing_loggers": false,
+    "formatters": {
+        "standard": {
+            "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+        }
+    },
+    "handlers": {
+        "quiz_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "c:\\Users\\remix\\Desktop\\backup_20241119_210746\\logs\\quiz.log",
+            "maxBytes": 5242880,
+            "backupCount": 5,
+            "formatter": "standard"
+        },
+        "security_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "c:\\Users\\remix\\Desktop\\backup_20241119_210746\\logs\\security.log",
+            "maxBytes": 1048576,
+            "backupCount": 10,
+            "formatter": "standard"
+        },
+        "performance_file": {
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "filename": "c:\\Users\\remix\\Desktop\\backup_20241119_210746\\logs\\performance.log",
+            "when": "midnight",
+            "interval": 1,
+            "backupCount": 30,
+            "formatter": "standard"
+        }
+    },
+    "loggers": {
+        "quiz": {
+            "handlers": [
+                "quiz_file"
+            ],
+            "level": "INFO"
+        },
+        "security": {
+            "handlers": [
+                "security_file"
+            ],
+            "level": "INFO"
+        },
+        "performance": {
+            "handlers": [
+                "performance_file"
+            ],
+            "level": "INFO"
+        }
+    }
+}

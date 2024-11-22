@@ -46,6 +46,12 @@ REGISTRATION_SUCCESS_MESSAGE = 'Registration successful! Please check your email
 PASSWORD_RESET_SENT_MESSAGE = 'Password reset instructions have been sent to your email.'
 PASSWORD_RESET_SUCCESS_MESSAGE = 'Your password has been successfully reset.'
 PASSWORD_RESET_INVALID_TOKEN_MESSAGE = 'Invalid password reset link. Please try again.'
+GENERIC_ERROR_MESSAGE = 'An error occurred. Please try again later.'
+INVALID_RESET_LINK_MESSAGE = 'The password reset link is invalid or has expired. Please request a new one.'
+INVALID_VERIFICATION_LINK_MESSAGE = 'The verification link is invalid or has expired. Please request a new one.'
+EMAIL_VERIFIED_MESSAGE = 'Your email has been verified successfully. You can now login.'
+BLACKLISTED_DOMAIN_MESSAGE = 'This email domain is not allowed for registration.'
+PASSWORD_RESET_EMAIL_SENT_MESSAGE = 'If an account exists with this email, you will receive password reset instructions.'
 
 # Password Reset Settings
 PASSWORD_RESET_TIMEOUT = 3600  # 1 hour

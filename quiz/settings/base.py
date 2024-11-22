@@ -30,6 +30,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'quiz.middleware.SecurityMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -37,7 +38,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'quiz.middleware.SecurityMiddleware',
     'quiz.middleware.MonitoringMiddleware',
     'quiz.middleware.LoggingMiddleware',
     'quiz.middleware.RateLimitMiddleware',
@@ -178,9 +178,15 @@ LOGGING = {
     },
 }
 
-# Email configuration
+# Email Configuration for Testing
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'noreply@example.com'
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 1025
+EMAIL_USE_TLS = False
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+DEFAULT_FROM_EMAIL = 'noreply@quizapp.com'
+SITE_NAME = 'Quiz App'
 
 # Quiz-specific settings
 QUIZ_SETTINGS = {

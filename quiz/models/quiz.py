@@ -17,6 +17,8 @@ from ..utils.functional import (
 import logging
 from django.core.exceptions import ValidationError
 from decimal import Decimal
+from django.utils.text import slugify
+import uuid
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -68,46 +70,152 @@ class QuizStats:
             'completion_rate': self.completion_rate
         }
 
-class Quiz(models.Model):
+class Quiz(BaseModel, TimestampedModel, OrderedMixin, CachedMixin):
     """Quiz model."""
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_quizzes')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
-    is_published = models.BooleanField(default=False)
+    start_date = models.DateTimeField(null=True, blank=True)
     end_date = models.DateTimeField(null=True, blank=True)
-    passing_score = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        default=60.00,
-        validators=[
-            MinValueValidator(Decimal('0.00')),
-            MaxValueValidator(Decimal('100.00'))
-        ]
-    )
+    time_limit = models.IntegerField(default=30, help_text='Time limit in minutes')
+    pass_mark = models.DecimalField(max_digits=5, decimal_places=2, default=50.00)
+    success_text = models.TextField(blank=True, help_text='Displayed when user passes the quiz')
+    fail_text = models.TextField(blank=True, help_text='Displayed when user fails the quiz')
+    max_attempts = models.IntegerField(default=0, help_text='0 = unlimited attempts')
+    random_order = models.BooleanField(default=False)
+    answers_at_end = models.BooleanField(default=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    image = models.ImageField(upload_to='quiz_images/', null=True, blank=True)
+    
+    class Meta:
+        verbose_name = 'Quiz'
+        verbose_name_plural = 'Quizzes'
+        ordering = ['-created_at']
     
     def __str__(self):
         return self.title
         
-    def clean(self):
-        if self.end_date and self.end_date < timezone.now():
-            raise ValidationError('End date cannot be in the past.')
-            
     def save(self, *args, **kwargs):
-        self.clean()
+        """Save quiz and generate slug if needed."""
+        if not self.slug:
+            base_slug = slugify(self.title)
+            slug = base_slug
+            counter = 1
+            # Keep trying with incremented counter until we find a unique slug
+            while Quiz.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
         super().save(*args, **kwargs)
-        
+    
+    def clean(self):
+        if self.start_date and self.end_date:
+            if self.start_date >= self.end_date:
+                raise ValidationError('Start date must be before end date')
+            
     @property
     def is_ended(self):
-        return self.end_date and self.end_date < timezone.now()
-        
+        if self.end_date:
+            return timezone.now() >= self.end_date
+        return False
+    
     @property
     def status(self):
         if not self.is_active:
             return 'inactive'
-        if not self.is_published:
-            return 'draft'
         if self.is_ended:
             return 'ended'
         return 'active'
+
+    @property
+    def question_count(self):
+        return self.questions.count()
+    
+    @property
+    def total_attempts(self):
+        return self.attempts.count()
+    
+    def get_user_attempts(self, user):
+        return self.attempts.filter(user=user).count()
+    
+    def get_best_score(self, user):
+        best_attempt = self.attempts.filter(user=user).order_by('-score').first()
+        return best_attempt.score if best_attempt else None
+
+class Question(models.Model):
+    """Question model."""
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='questions')
+    text = models.TextField()
+    explanation = models.TextField(blank=True, help_text='Explanation shown after the question is answered')
+    order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    
+    class Meta:
+        ordering = ['order', 'created_at']
+    
+    def __str__(self):
+        return self.text[:50]
+
+class Choice(models.Model):
+    """Choice model for quiz questions."""
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='choices')
+    text = models.CharField(max_length=255)
+    is_correct = models.BooleanField(default=False)
+    explanation = models.TextField(blank=True)
+    order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    
+    class Meta:
+        ordering = ['order']
+    
+    def __str__(self):
+        return self.text
+
+class QuizAttempt(models.Model):
+    """Model to track quiz attempts."""
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='attempts')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quiz_attempts')
+    score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    
+    class Meta:
+        ordering = ['-started_at']
+    
+    def __str__(self):
+        return f"{self.user.username}'s attempt at {self.quiz.title}"
+    
+    @property
+    def is_completed(self):
+        return bool(self.completed_at)
+    
+    @property
+    def time_taken(self):
+        if self.completed_at:
+            return (self.completed_at - self.started_at).total_seconds()
+        return None
+
+class QuizAnswer(models.Model):
+    """Model to store user's answers to quiz questions."""
+    attempt = models.ForeignKey(QuizAttempt, on_delete=models.CASCADE, related_name='answers')
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    metadata = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        unique_together = ('attempt', 'question')
+        ordering = ['question__order', 'created_at']
+
+    def __str__(self):
+        return f"{self.attempt.user.username}'s answer to {self.question.text[:50]}"

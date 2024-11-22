@@ -24,7 +24,7 @@
                         {% endif %}
                         <div>Total Attempts: {{ quiz.total_attempts }}</div>
                     </div>
-                    <a href="{% url 'quiz:quiz_start' quiz.id %}" class="btn btn-primary">Start Quiz</a>
+                    <a href="{% url 'quiz:quiz_take' quiz.id %}" class="btn btn-primary">Start Quiz</a>
                 </div>
             </div>
         </div>

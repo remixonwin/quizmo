@@ -1,130 +1,113 @@
-# Configuration files
-config.json
-config.*.json
-!config.example.json
-
-# Logs
-logs/
-*.log
-
-# Environment
 !.env.example
+!config.example.json
+# Backup files
+# Build output
+# Cache
+# Certificates and keys
+# Compiled files
+# Configuration files
+# Coverage reports
+# Database
+# Debug files
+# Dependency directories
+# Deployment state
+# Django
+# Environment
+# Environment variables
+# IDE
+# IDE files
+# IDE settings
+# Logs
+# PowerShell
+# Python
+# Python cache files
+# Sensitive information
+# Static files
+# System files
+# Temporary files
+# Test files
+# Testing
+# Virtual environment
+*$py.class
+*.bak
+*.crt
+*.dbg
+*.debug
+*.egg
+*.egg-info/
+*.key
+*.log
+*.log.*
+*.pem
+*.pfx
+*.pot
+*.ps1.config
+*.py[cod]
+*.pyc
+*.pyd
+*.pyo
+*.sln.docstates
+*.so
+*.sqlite3
+*.state
+*.suo
+*.swo
+*.swp
+*.temp
+*.tmp
+*.token
+*.user
+*credential*
+*password*
+*secret*
+*~
+.DS_Store
+.Python
+.cache/
+.coverage
+.eggs/
 .env
 .env.*
-
-# Deployment state
-state/
-*.state
-
-# PowerShell
-*.ps1.config
-
-# Temporary files
-*.tmp
-*.temp
-*.bak
-
-# IDE files
-.vscode/
+.env.*.local
+.env.local
 .idea/
-*.suo
-*.user
-*.sln.docstates
-
-# Certificates and keys
-*.pfx
-*.key
-*.crt
-*.pem
-
-# Dependency directories
-packages/
-node_modules/
-
-# Build output
-dist/
-build/
-out/
-
-# Debug files
-*.debug
-*.dbg
-
-# Test files
-test-results/
-coverage/
-
-# System files
-.DS_Store
+.installed.cfg
+.pytest_cache/
+.tox/
+.virtualenv/
+.vscode/
 Thumbs.db
-
-# Sensitive information
-*secret*
-*password*
-*credential*
-*.token
-*.key
-
-# Python
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
+backup_metadata.json
 build/
+config.*.json
+config.json
+coverage/
+data/db/
+db.sqlite3
+db.sqlite3-journal
 develop-eggs/
 dist/
 downloads/
 eggs/
-.eggs/
+env/
+htmlcov/
 lib/
 lib64/
+local_settings.py
+logs/
+logs/*.log
+logs/archived/
+media/
+node_modules/
+out/
+packages/
 parts/
 sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Django
-*.log
-*.pot
-*.pyc
-db.sqlite3
-db.sqlite3-journal
-media/
-local_settings.py
-
-# Environment variables
-.env
-.env.*
-!.env.example
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-.DS_Store
-
-# Testing
-.coverage
-htmlcov/
-.tox/
-.pytest_cache/
-test_db.sqlite3
-
-# Static files
+state/
 staticfiles/
-node_modules/
-
-# Backup files
-*.bak
-*~
-*.swp
-*.swo
-backup_metadata.json
-
-# Cache
-.cache/
+test-results/
+test_db.sqlite3
+var/
+venv/
+wheels/
