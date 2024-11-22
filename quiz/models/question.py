@@ -3,7 +3,7 @@ Question and Choice models with advanced functional programming patterns.
 """
 from typing import Dict, List, Optional, Any, TypeVar, Union, Callable
 from dataclasses import dataclass, field
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Avg, Count
 from django.core.exceptions import ValidationError
 from django.core.cache import cache
@@ -195,6 +195,12 @@ class Question(TimestampedModel, OrderedMixin, CachedMixin):
         blank=True,
         help_text='Explanation shown after answering'
     )
+    image = models.ImageField(
+        upload_to='question_images/',
+        null=True,
+        blank=True,
+        help_text='Image to display with the question'
+    )
     difficulty = models.CharField(
         max_length=10,
         choices=DIFFICULTY_CHOICES,
@@ -205,21 +211,17 @@ class Question(TimestampedModel, OrderedMixin, CachedMixin):
         decimal_places=2,
         default=1.0
     )
+    order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
     tags = models.JSONField(default=list, blank=True)
-    image = models.ImageField(
-        upload_to='question_images/',
-        null=True,
-        blank=True,
-        help_text='Image to display with the question'
-    )
     
     class Meta:
         ordering = ['quiz', 'order']
         unique_together = ['quiz', 'order']
     
-    def __str__(self) -> str:
-        return f"{self.quiz.title} - Q{self.order}"
+    def __str__(self):
+        """Return string representation of Question."""
+        return self.text
     
     @cached_property
     def choices_count(self) -> int:
@@ -310,6 +312,12 @@ class Question(TimestampedModel, OrderedMixin, CachedMixin):
         
         return base_points * (1 + bonus)
     
+    def clean(self):
+        """Validate question."""
+        super().clean()
+        if self.choices.filter(is_correct=True).count() > 1:
+            raise ValidationError('Question cannot have multiple correct choices')
+    
     def save(self, *args: Any, **kwargs: Any) -> None:
         """Save question and invalidate caches."""
         super().save(*args, **kwargs)
@@ -344,16 +352,17 @@ class Choice(TimestampedModel, OrderedMixin, CachedMixin):
     """Choice model with advanced functional patterns."""
     
     question = models.ForeignKey(
-        'Question',
+        Question,
         related_name='choices',
         on_delete=models.CASCADE
     )
-    text = models.TextField()
+    text = models.CharField(max_length=200)
     is_correct = models.BooleanField(default=False)
     explanation = models.TextField(
         blank=True,
         help_text='Explanation shown when this choice is selected'
     )
+    order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
     tags = models.JSONField(default=list, blank=True)
     
@@ -366,8 +375,9 @@ class Choice(TimestampedModel, OrderedMixin, CachedMixin):
             )
         ]
 
-    def __str__(self) -> str:
-        return f"{self.question} - Choice {self.order}"
+    def __str__(self):
+        """Return string representation of Choice."""
+        return self.text
     
     @cached_property
     def selection_count(self) -> int:
@@ -398,8 +408,34 @@ class Choice(TimestampedModel, OrderedMixin, CachedMixin):
             'incorrect_selections': sum(1 for a in answers if not a.is_correct)
         }
     
+    def clean(self):
+        """Validate choice."""
+        super().clean()
+        if self.is_correct and self.question.choices.exclude(id=self.id).filter(is_correct=True).exists():
+            raise ValidationError('Question cannot have multiple correct choices')
+    
     def save(self, *args: Any, **kwargs: Any) -> None:
         """Save choice and invalidate caches."""
+        # Set order if not provided
+        if not self.order:
+            max_order = self.question.choices.aggregate(models.Max('order'))['order__max']
+            self.order = (max_order or 0) + 1
+        
+        # Handle order conflicts by shifting existing choices
+        if self.order is not None:
+            with transaction.atomic():
+                # Get choices with same or higher order
+                conflicting_choices = self.question.choices.filter(
+                    order__gte=self.order
+                ).exclude(id=self.id).order_by('order')
+                
+                # Shift conflicting choices up
+                current_order = self.order
+                for choice in conflicting_choices:
+                    current_order += 1
+                    choice.order = current_order
+                    choice.save()
+        
         # Ensure only one correct choice per question using functional patterns
         if self.is_correct:
             pipe(

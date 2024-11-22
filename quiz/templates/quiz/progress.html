@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Quiz Progress{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">Your Quiz Progress</h1>
+    
+    <!-- Statistics Overview -->
+    <div class="row mb-5">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Overall Statistics</h5>
+                    <p class="card-text">
+                        <strong>Total Attempts:</strong> {{ total_attempts }}<br>
+                        <strong>Total Quizzes:</strong> {{ total_quizzes }}<br>
+                        <strong>Average Score:</strong> {{ stats.average_score|floatformat:1 }}%<br>
+                        <strong>Pass Rate:</strong> {{ stats.pass_rate|floatformat:1 }}%
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Performance</h5>
+                    <p class="card-text">
+                        <strong>Total Questions:</strong> {{ stats.total_questions }}<br>
+                        <strong>Correct Answers:</strong> {{ stats.total_correct }}<br>
+                        <strong>Completion Rate:</strong> {{ stats.completion_rate|floatformat:1 }}%<br>
+                        <strong>Average Time:</strong> {{ stats.average_time|floatformat:0 }} seconds
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Activity</h5>
+                    <ul class="list-unstyled">
+                        {% for attempt in recent_attempts %}
+                        <li>
+                            <a href="{% url 'quiz:quiz_results' pk=attempt.pk %}">
+                                {{ attempt.quiz.title }} - {{ attempt.score|floatformat:1 }}%
+                            </a>
+                        </li>
+                        {% empty %}
+                        <li>No recent attempts</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Attempt History -->
+    <h2 class="mb-4">Attempt History</h2>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Quiz</th>
+                    <th>Date</th>
+                    <th>Score</th>
+                    <th>Time Taken</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attempt in attempts %}
+                <tr>
+                    <td>{{ attempt.quiz.title }}</td>
+                    <td>{{ attempt.created_at|date:"M d, Y H:i" }}</td>
+                    <td>{{ attempt.score|floatformat:1 }}%</td>
+                    <td>
+                        {% if attempt.completed_at and attempt.started_at %}
+                            {{ attempt.completed_at|timeuntil:attempt.started_at }}
+                        {% else %}
+                            In Progress
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if attempt.score >= attempt.quiz.passing_score %}
+                            <span class="badge bg-success">Passed</span>
+                        {% elif attempt.completed_at %}
+                            <span class="badge bg-danger">Failed</span>
+                        {% else %}
+                            <span class="badge bg-warning">Incomplete</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'quiz:quiz_results' pk=attempt.pk %}" 
+                           class="btn btn-sm btn-primary">
+                            View Results
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">No attempts yet</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add any JavaScript for interactivity here
+</script>
+{% endblock %}

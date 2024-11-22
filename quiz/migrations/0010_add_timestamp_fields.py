@@ -10,17 +10,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name='quiz',
-            name='created_at',
-            field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='quiz',
-            name='updated_at',
-            field=models.DateTimeField(auto_now=True),
-        ),
-        migrations.AddField(
             model_name='question',
             name='created_at',
             field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now),

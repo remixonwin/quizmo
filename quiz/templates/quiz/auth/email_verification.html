@@ -1,0 +1,14 @@
+{% autoescape off %}
+Hello {{ user.username }},
+
+Welcome to QuizApp! Please confirm your email address by clicking the link below:
+
+{{ protocol }}://{{ domain }}{% url 'quiz:verify_email' uidb64=uid token=token %}
+
+This link will expire in 24 hours.
+
+If you did not create an account on QuizApp, you can safely ignore this email.
+
+Best regards,
+The QuizApp Team
+{% endautoescape %}

@@ -40,10 +40,38 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'quiz:help' %}">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="helpDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-question-circle me-1"></i>Help
                         </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'quiz:help' %}">
+                                    <i class="fas fa-info-circle me-2"></i>Help Center
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'quiz:help_quick_start' %}">
+                                    <i class="fas fa-play-circle me-2"></i>Quick Start
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'quiz:help_study_materials' %}">
+                                    <i class="fas fa-book me-2"></i>Study Materials
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'quiz:help_faq' %}">
+                                    <i class="fas fa-question me-2"></i>FAQs
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'quiz:help_contact' %}">
+                                    <i class="fas fa-envelope me-2"></i>Contact Support
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'quiz:quiz_list' %}">
@@ -52,18 +80,18 @@
                     </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'logout' %}">
+                            <a class="nav-link" href="{% url 'quiz:logout' %}">
                                 <i class="fas fa-sign-out-alt me-1"></i>Logout
                             </a>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">
+                            <a class="nav-link" href="{% url 'quiz:login' %}">
                                 <i class="fas fa-sign-in-alt me-1"></i>Login
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'register' %}">
+                            <a class="nav-link" href="{% url 'quiz:register' %}">
                                 <i class="fas fa-user-plus me-1"></i>Register
                             </a>
                         </li>

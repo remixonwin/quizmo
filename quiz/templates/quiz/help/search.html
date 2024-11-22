@@ -1,0 +1,135 @@
+{% extends "quiz/base.html" %}
+
+{% block title %}{{ title }} - Minnesota DMV Practice Quiz{% endblock %}
+
+{% block meta %}
+<meta name="description" content="{{ meta_description }}">
+<meta name="keywords" content="Minnesota DMV, Practice Quiz, Help, Search">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'quiz:quiz_list' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'quiz:help' %}">Help Center</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Search Results</li>
+        </ol>
+    </nav>
+
+    <h1 class="mb-4">Search Results</h1>
+
+    <!-- Search Form -->
+    <section class="mb-4" aria-label="Search help topics">
+        <form method="get" action="{% url 'quiz:help_search' %}" class="search-form">
+            <div class="input-group">
+                <input type="search" 
+                       name="q" 
+                       class="form-control" 
+                       placeholder="Search help topics..." 
+                       aria-label="Search help topics"
+                       value="{{ search_query }}"
+                       required>
+                <button class="btn btn-primary" type="submit">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Search Results -->
+    {% if results %}
+        <p class="text-muted">Found {{ results|length }} result{{ results|length|pluralize }} for "{{ search_query }}"</p>
+        
+        <div class="list-group mb-4">
+            {% for result in results %}
+            <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between align-items-start">
+                    <div>
+                        <h2 class="h6 mb-1">{{ result.title }}</h2>
+                        <p class="mb-1">{{ result.content }}</p>
+                        <a href="{{ result.url }}" class="btn btn-link btn-sm ps-0">
+                            View in {{ result.type }}
+                            <i class="fas fa-chevron-right ms-1"></i>
+                        </a>
+                    </div>
+                    <span class="badge bg-secondary text-white">{{ result.type }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Search Tips -->
+        <div class="alert alert-info" role="alert">
+            <h2 class="h6">Search Tips</h2>
+            <ul class="mb-0">
+                <li>Try using different keywords to find more results</li>
+                <li>Search is not case-sensitive</li>
+                <li>You can search across all help topics, FAQs, and study materials</li>
+            </ul>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <h2 class="h5">No results found</h2>
+            <p class="mb-0">We couldn't find any matches for "{{ search_query }}". Try:</p>
+            <ul class="mb-0 mt-2">
+                <li>Using different keywords</li>
+                <li>Using more general terms</li>
+                <li>Checking your spelling</li>
+            </ul>
+        </div>
+
+        <!-- Popular Topics -->
+        <section class="mt-4">
+            <h2 class="h5 mb-3">Popular Topics</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h3 class="h6 card-title">Quick Start Guide</h3>
+                            <p class="card-text mb-3">Learn how to get started with our practice tests.</p>
+                            <a href="{% url 'quiz:help_quick_start' %}" class="btn btn-outline-primary btn-sm stretched-link">
+                                View Guide <i class="fas fa-chevron-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h3 class="h6 card-title">Study Materials</h3>
+                            <p class="card-text mb-3">Access study materials and tips for success.</p>
+                            <a href="{% url 'quiz:help_study_materials' %}" class="btn btn-outline-primary btn-sm stretched-link">
+                                View Materials <i class="fas fa-chevron-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h3 class="h6 card-title">Frequently Asked Questions</h3>
+                            <p class="card-text mb-3">Find answers to common questions about the practice tests.</p>
+                            <a href="{% url 'quiz:help_faq' %}" class="btn btn-outline-primary btn-sm stretched-link">
+                                View FAQs <i class="fas fa-chevron-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h3 class="h6 card-title">Contact Support</h3>
+                            <p class="card-text mb-3">Need more help? Our support team is here to assist you.</p>
+                            <a href="{% url 'quiz:help_contact' %}" class="btn btn-outline-primary btn-sm stretched-link">
+                                Contact Us <i class="fas fa-chevron-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    {% endif %}
+</div>
+{% endblock %}

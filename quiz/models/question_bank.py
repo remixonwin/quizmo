@@ -9,18 +9,23 @@ from typing import List, Optional
 import logging
 from .base import CachedMixin
 from django.db import transaction
+from django.contrib.auth import get_user_model
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
+User = get_user_model()
 
 CACHE_TTL = 3600  # 1 hour cache TTL
 
 class QuestionBank(CachedMixin, models.Model):
     """Model for managing question collections."""
     name = models.CharField(max_length=200, unique=True)
-    description = models.TextField()
+    description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='question_banks', null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    tags = models.JSONField(default=list, blank=True)
     
     class Meta:
         ordering = ['-created_at']
@@ -140,7 +145,7 @@ class BankQuestion(CachedMixin, models.Model):
     
     def get_choices(self) -> models.QuerySet:
         """Get question choices with caching."""
-        cache_key = self.get_cache_key(f'bank_choices_{self.id}')
+        cache_key = self.get_cache_key(f'question_choices_{self.id}')
         choices = cache.get(cache_key)
         
         if choices is None:
@@ -176,6 +181,7 @@ def invalidate_bank_cache(sender, instance, **kwargs):
     """Invalidate bank-related caches."""
     try:
         instance.invalidate_cache()
+        cache.delete(QuestionBank.get_cache_key(f'bank_questions_{instance.id}'))
         logger.debug(f'Successfully invalidated cache for bank {instance.id}')
     except Exception as e:
         logger.error(f'Error invalidating bank cache: {str(e)}')
@@ -185,10 +191,7 @@ def invalidate_bank_question_cache(sender, instance, **kwargs):
     """Invalidate bank question-related caches."""
     try:
         instance.invalidate_cache()
-        cache.delete_many([
-            QuestionBank.get_cache_key(f'bank_questions_{instance.bank_id}'),
-            BankQuestion.get_cache_key(f'bank_choices_{instance.id}')
-        ])
+        cache.delete(BankQuestion.get_cache_key(f'question_choices_{instance.id}'))
         logger.debug(f'Successfully invalidated cache for bank question {instance.id}')
     except Exception as e:
         logger.error(f'Error invalidating bank question cache: {str(e)}')
@@ -198,7 +201,7 @@ def invalidate_bank_choice_cache(sender, instance, **kwargs):
     """Invalidate bank choice-related caches."""
     try:
         instance.invalidate_cache()
-        cache.delete(BankQuestion.get_cache_key(f'bank_choices_{instance.question_id}'))
+        cache.delete(BankQuestion.get_cache_key(f'question_choices_{instance.question_id}'))
         logger.debug(f'Successfully invalidated cache for bank choice {instance.id}')
     except Exception as e:
         logger.error(f'Error invalidating bank choice cache: {str(e)}')

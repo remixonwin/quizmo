@@ -1,0 +1,39 @@
+{% extends "quiz/help/help_base.html" %}
+
+{% block help_description %}Minnesota DMV Practice Quiz - Quick Start Guide{% endblock %}
+
+{% block help_title %}Quick Start Guide{% endblock %}
+{% block page_title %}Quick Start Guide{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'quiz:help' %}">Help Center</a></li>
+<li class="breadcrumb-item active" aria-current="page">Quick Start</li>
+{% endblock %}
+
+{% block help_content %}
+<div class="row">
+    {% for step in quick_start %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 responsive-card">
+            <div class="card-body">
+                <h2 class="h5 card-title">{{ step.title }}</h2>
+                <p class="card-text">{{ step.description }}</p>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            Quick start guide is currently being updated. Please check back later.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Print-friendly version -->
+<div class="d-print-none text-end mt-4">
+    <button onclick="window.print()" class="btn btn-secondary">
+        <i class="fas fa-print me-2"></i>Print Quick Start Guide
+    </button>
+</div>
+{% endblock %}

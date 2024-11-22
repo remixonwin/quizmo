@@ -2,21 +2,64 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import Quiz, Question, Choice
+from django.core.exceptions import ValidationError
+from django.contrib.auth.password_validation import validate_password
+from django.core.validators import EmailValidator
+from .settings.auth import BLACKLISTED_EMAIL_DOMAINS
 
 class CustomUserCreationForm(UserCreationForm):
-    username = forms.CharField(
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'})
+    email = forms.EmailField(
+        required=True,
+        help_text='Required. Enter a valid email address.',
+        validators=[EmailValidator()]
     )
-    password1 = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'})
-    )
-    password2 = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm Password'})
-    )
-    
+
     class Meta:
         model = User
-        fields = ['username', 'password1', 'password2']
+        fields = ('username', 'email', 'password1', 'password2')
+
+    def clean_password1(self):
+        """Validate password complexity."""
+        password1 = self.cleaned_data.get('password1')
+        try:
+            validate_password(password1, self.instance)
+        except ValidationError as e:
+            # Convert error messages to a list of strings
+            error_messages = []
+            for error in e.messages:
+                if 'too short' in error.lower():
+                    error_messages.append('This password is too short.')
+                elif 'too common' in error.lower():
+                    error_messages.append('This password is too common.')
+                else:
+                    error_messages.append(error)
+            raise ValidationError(error_messages)
+        return password1
+
+    def clean_password2(self):
+        password1 = self.cleaned_data.get('password1')
+        password2 = self.cleaned_data.get('password2')
+        if password1 and password2 and password1 != password2:
+            raise ValidationError("The two password fields didn't match.")
+        return password2
+
+    def clean_email(self):
+        """Validate email domain and uniqueness."""
+        email = self.cleaned_data.get('email')
+        if email:
+            email = email.lower().strip()
+            if User.objects.filter(email__iexact=email).exists():
+                raise ValidationError('This email address is already in use.')
+            domain = email.split('@')[-1]
+            if domain in BLACKLISTED_EMAIL_DOMAINS:
+                raise ValidationError('This email domain is not allowed.')
+        return email
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if User.objects.filter(username__iexact=username).exists():
+            raise ValidationError('This username already exists.')
+        return username
 
 class QuizForm(forms.ModelForm):
     class Meta:

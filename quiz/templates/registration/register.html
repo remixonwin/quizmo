@@ -11,6 +11,15 @@
                     <h2 class="h4 mb-0 text-center">Register</h2>
                 </div>
                 <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %} me-2"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
                     {% if form.errors %}
                         <div class="alert alert-danger">
                             <i class="fas fa-exclamation-circle me-2"></i>
@@ -27,10 +36,13 @@
                                 <span class="input-group-text">
                                     <i class="fas fa-user"></i>
                                 </span>
-                                {{ form.username }}
+                                <input type="text" name="username" id="id_username" class="form-control" required>
                             </div>
                             {% if form.username.errors %}
                                 <div class="text-danger small mt-1">{{ form.username.errors }}</div>
+                            {% endif %}
+                            {% if form.username.help_text %}
+                                <div class="text-muted small mt-1">{{ form.username.help_text }}</div>
                             {% endif %}
                         </div>
                         
@@ -40,10 +52,13 @@
                                 <span class="input-group-text">
                                     <i class="fas fa-envelope"></i>
                                 </span>
-                                {{ form.email }}
+                                <input type="email" name="email" id="id_email" class="form-control" required>
                             </div>
                             {% if form.email.errors %}
                                 <div class="text-danger small mt-1">{{ form.email.errors }}</div>
+                            {% endif %}
+                            {% if form.email.help_text %}
+                                <div class="text-muted small mt-1">{{ form.email.help_text }}</div>
                             {% endif %}
                         </div>
                         
@@ -53,10 +68,13 @@
                                 <span class="input-group-text">
                                     <i class="fas fa-lock"></i>
                                 </span>
-                                {{ form.password1 }}
+                                <input type="password" name="password1" id="id_password1" class="form-control" required>
                             </div>
                             {% if form.password1.errors %}
                                 <div class="text-danger small mt-1">{{ form.password1.errors }}</div>
+                            {% endif %}
+                            {% if form.password1.help_text %}
+                                <div class="text-muted small mt-1">{{ form.password1.help_text|safe }}</div>
                             {% endif %}
                         </div>
                         
@@ -66,10 +84,13 @@
                                 <span class="input-group-text">
                                     <i class="fas fa-lock"></i>
                                 </span>
-                                {{ form.password2 }}
+                                <input type="password" name="password2" id="id_password2" class="form-control" required>
                             </div>
                             {% if form.password2.errors %}
                                 <div class="text-danger small mt-1">{{ form.password2.errors }}</div>
+                            {% endif %}
+                            {% if form.password2.help_text %}
+                                <div class="text-muted small mt-1">{{ form.password2.help_text }}</div>
                             {% endif %}
                         </div>
                         
@@ -83,7 +104,7 @@
                     <div class="text-center mt-4">
                         <p class="text-muted mb-0">
                             Already have an account? 
-                            <a href="{% url 'login' %}" class="text-primary">Login here</a>
+                            <a href="{% url 'quiz:login' %}" class="text-primary">Login here</a>
                         </p>
                     </div>
                 </div>

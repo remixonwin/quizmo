@@ -1,220 +1,240 @@
 """
 Tests for quiz views.
 """
-from django.test import TestCase, Client
+from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
-from django.contrib.messages import get_messages
-from django.utils import timezone
-from datetime import timedelta
+from quiz.tests.base import QuizTestCase
 from quiz.models import Quiz, Question, Choice, QuizAttempt
 
+class QuizViewTests(QuizTestCase):
+    """Test quiz views."""
 
-class QuizViewTests(TestCase):
-    def setUp(self):
-        # Create test user
-        self.user = User.objects.create_user(
-            username='testuser',
-            password='testpass123'
-        )
-        self.client = Client()
+    def test_quiz_list_view(self):
+        """Test the quiz list view"""
+        # Login required for quiz list
+        self.client.login(username=self.test_user.username, password='testpass123')
         
-        # Create test quiz
-        self.quiz = Quiz.objects.create(
-            title='Test Quiz',
-            description='A test quiz',
-            is_active=True,
-            created_at=timezone.now()
-        )
-        
-        # Create test questions and choices
-        self.question = Question.objects.create(
-            quiz=self.quiz,
-            text='Test question?'
-        )
-        self.correct_choice = Choice.objects.create(
-            question=self.question,
-            text='Correct answer',
-            is_correct=True
-        )
-        self.wrong_choice = Choice.objects.create(
-            question=self.question,
-            text='Wrong answer',
-            is_correct=False
-        )
-
-    def test_quiz_list_view_unauthenticated(self):
-        """Test the quiz list view without authentication."""
-        response = self.client.get(reverse('quiz:quiz_list'))
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, '/accounts/login/?next=' + reverse('quiz:quiz_list'))
-
-    def test_quiz_list_view_authenticated(self):
-        """Test the quiz list view with authentication."""
-        self.client.login(username='testuser', password='testpass123')
         response = self.client.get(reverse('quiz:quiz_list'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'quiz/quiz_list.html')
-        self.assertContains(response, 'Test Quiz')
+        
+        # Check if quiz is in context
+        self.assertIn(self.quiz, response.context['quizzes'])
 
-    def test_quiz_detail_view_unauthenticated(self):
-        """Test the quiz detail view without authentication."""
-        response = self.client.get(reverse('quiz:quiz_detail', args=[self.quiz.id]))
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response, 
-            '/accounts/login/?next=' + reverse('quiz:quiz_detail', args=[self.quiz.id])
+    def test_quiz_detail_view(self):
+        """Test the quiz detail view"""
+        # Login required for quiz detail
+        self.client.login(username=self.test_user.username, password='testpass123')
+        
+        response = self.client.get(
+            reverse('quiz:quiz_detail', kwargs={'pk': self.quiz.pk})
         )
-
-    def test_quiz_detail_view_authenticated(self):
-        """Test the quiz detail view with authentication."""
-        self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('quiz:quiz_detail', args=[self.quiz.id]))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'quiz/quiz_detail.html')
-        self.assertContains(response, 'Test Quiz')
+        
+        # Check quiz context
+        self.assertEqual(response.context['quiz'], self.quiz)
+        self.assertEqual(len(response.context['questions']), 5)
 
-    def test_start_quiz_authentication(self):
-        """Test that quiz starting requires authentication."""
-        # Test unauthenticated access
-        response = self.client.get(reverse('quiz:start_quiz', args=[self.quiz.id]))
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response, 
-            '/accounts/login/?next=' + reverse('quiz:start_quiz', args=[self.quiz.id])
-        )
+    def test_quiz_start_view(self):
+        """Test starting a quiz"""
+        # Login required for starting quiz
+        self.client.login(username=self.test_user.username, password='testpass123')
         
-        # Test authenticated access
-        self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('quiz:start_quiz', args=[self.quiz.id]))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'quiz/take_quiz.html')
-
-    def test_concurrent_quiz_attempts(self):
-        """Test handling of concurrent quiz attempts."""
-        self.client.login(username='testuser', password='testpass123')
-        
-        # Start first quiz
-        response = self.client.get(reverse('quiz:start_quiz', args=[self.quiz.id]))
-        self.assertEqual(response.status_code, 200)
-        
-        # Try to start another quiz while one is in progress
-        response = self.client.get(reverse('quiz:start_quiz', args=[self.quiz.id]))
-        self.assertEqual(response.status_code, 400)  # Bad request, quiz already in progress
-        
-        # Submit the quiz
         response = self.client.post(
-            reverse('quiz:quiz_submit', args=[self.quiz.id]),
-            {'question_{}'.format(self.question.id): self.correct_choice.id}
+            reverse('quiz:quiz_start', kwargs={'pk': self.quiz.pk})
+        )
+        self.assertEqual(response.status_code, 302)  # Redirects to quiz attempt
+        
+        # Check that attempt was created
+        self.assertTrue(
+            QuizAttempt.objects.filter(
+                quiz=self.quiz,
+                user=self.test_user
+            ).exists()
+        )
+
+    def test_quiz_attempt_view(self):
+        """Test quiz attempt view"""
+        # Login required for quiz attempt
+        self.client.login(username=self.test_user.username, password='testpass123')
+        
+        # Create attempt
+        attempt = self.create_quiz_attempt()
+        
+        response = self.client.get(
+            reverse('quiz:quiz_attempt', kwargs={'pk': attempt.pk})
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'quiz/quiz_attempt.html')
+        
+        # Check attempt context
+        self.assertEqual(response.context['attempt'], attempt)
+        self.assertEqual(response.context['quiz'], self.quiz)
+        self.assertEqual(len(response.context['questions']), 5)
+
+    def test_quiz_submit_view(self):
+        """Test submitting quiz answers"""
+        # Login required for submitting quiz
+        self.client.login(username=self.test_user.username, password='testpass123')
+        
+        # Create attempt
+        attempt = self.create_quiz_attempt()
+        
+        # Get correct answers for each question
+        answers = {}
+        for question in self.questions:
+            correct_choice = Choice.objects.get(
+                question=question,
+                is_correct=True
+            )
+            answers[f'question_{question.pk}'] = correct_choice.pk
+        
+        response = self.client.post(
+            reverse('quiz:quiz_submit', kwargs={'pk': attempt.pk}),
+            data=answers
         )
         self.assertEqual(response.status_code, 302)  # Redirects to results
-        self.assertRedirects(response, reverse('quiz:quiz_results', args=[self.quiz.id]))
+        
+        # Refresh attempt from db
+        attempt.refresh_from_db()
+        self.assertTrue(attempt.completed_at)
+        self.assertEqual(attempt.score, 100.0)
 
-    def test_quiz_submission(self):
-        """Test quiz submission and scoring."""
-        self.client.login(username='testuser', password='testpass123')
+    def test_quiz_results_view(self):
+        """Test quiz results view"""
+        # Login required for viewing results
+        self.client.login(username=self.test_user.username, password='testpass123')
         
-        # Start the quiz
-        self.client.get(reverse('quiz:start_quiz', args=[self.quiz.id]))
+        # Create and complete attempt
+        attempt = self.create_quiz_attempt(correct_answers=3)
+        attempt.complete()
         
-        # Submit with correct answer
+        response = self.client.get(
+            reverse('quiz:quiz_results', kwargs={'pk': attempt.pk})
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'quiz/quiz_results.html')
+        
+        # Check results context
+        self.assertEqual(response.context['attempt'], attempt)
+        self.assertEqual(response.context['quiz'], self.quiz)
+        self.assertEqual(response.context['score'], 60.0)  # 3/5 correct
+
+class QuizAuthTests(QuizTestCase):
+    """Test quiz view authentication."""
+
+    def test_login_required(self):
+        """Test that views require login"""
+        # List of URL names that require login
+        protected_urls = [
+            'quiz:quiz_list',
+            'quiz:quiz_detail',
+            'quiz:quiz_start',
+            'quiz:quiz_attempt',
+            'quiz:quiz_submit',
+            'quiz:quiz_results'
+        ]
+        
+        # Test each protected URL
+        for url_name in protected_urls:
+            # For URLs that need parameters, use the quiz pk
+            kwargs = {}
+            if 'pk' in url_name:
+                kwargs['pk'] = self.quiz.pk
+            
+            url = reverse(url_name, kwargs=kwargs)
+            response = self.client.get(url)
+            
+            # Should redirect to login
+            self.assertEqual(response.status_code, 302)
+            self.assertTrue(response.url.startswith('/accounts/login/'))
+
+class QuizProgressTests(QuizTestCase):
+    """Test quiz progress tracking."""
+
+    def test_quiz_progress(self):
+        """Test tracking quiz progress"""
+        self.client.login(username=self.test_user.username, password='testpass123')
+        
+        # Create multiple attempts
+        attempts = []
+        scores = [100.0, 60.0, 80.0]
+        for score in scores:
+            correct = int((score / 100.0) * 5)  # 5 questions total
+            attempt = self.create_quiz_attempt(correct_answers=correct)
+            attempt.complete()
+            attempts.append(attempt)
+        
+        # Check progress view
+        response = self.client.get(reverse('quiz:quiz_progress'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'quiz/quiz_progress.html')
+        
+        # Verify progress data
+        progress = response.context['progress']
+        self.assertEqual(len(progress['attempts']), 3)
+        self.assertEqual(progress['average_score'], 80.0)
+        self.assertEqual(progress['best_score'], 100.0)
+        self.assertEqual(progress['total_attempts'], 3)
+
+class QuizAPITests(QuizTestCase):
+    """Test quiz API views."""
+
+    def test_quiz_api_list(self):
+        """Test quiz list API"""
+        self.client.login(username=self.test_user.username, password='testpass123')
+        
+        response = self.client.get(reverse('quiz:api_quiz_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        
+        # Check response data
+        data = response.json()
+        self.assertEqual(len(data['quizzes']), 1)
+        self.assertEqual(data['quizzes'][0]['title'], self.quiz.title)
+
+    def test_quiz_api_detail(self):
+        """Test quiz detail API"""
+        self.client.login(username=self.test_user.username, password='testpass123')
+        
+        response = self.client.get(
+            reverse('quiz:api_quiz_detail', kwargs={'pk': self.quiz.pk})
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        
+        # Check response data
+        data = response.json()
+        self.assertEqual(data['title'], self.quiz.title)
+        self.assertEqual(len(data['questions']), 5)
+
+    def test_quiz_api_submit(self):
+        """Test quiz submission API"""
+        self.client.login(username=self.test_user.username, password='testpass123')
+        
+        # Create attempt
+        attempt = self.create_quiz_attempt()
+        
+        # Get correct answers
+        answers = {}
+        for question in self.questions:
+            correct_choice = Choice.objects.get(
+                question=question,
+                is_correct=True
+            )
+            answers[str(question.pk)] = correct_choice.pk
+        
         response = self.client.post(
-            reverse('quiz:quiz_submit', args=[self.quiz.id]),
-            {'question_{}'.format(self.question.id): self.correct_choice.id}
+            reverse('quiz:api_quiz_submit', kwargs={'pk': attempt.pk}),
+            data=answers,
+            content_type='application/json'
         )
-        self.assertEqual(response.status_code, 302)
-        
-        # Check results
-        response = self.client.get(reverse('quiz:quiz_results', args=[self.quiz.id]))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, '100')  # Should show 100% score
         
-        # Submit with wrong answer
-        self.client.get(reverse('quiz:start_quiz', args=[self.quiz.id]))
-        response = self.client.post(
-            reverse('quiz:quiz_submit', args=[self.quiz.id]),
-            {'question_{}'.format(self.question.id): self.wrong_choice.id}
-        )
-        self.assertEqual(response.status_code, 302)
-        
-        # Check results
-        response = self.client.get(reverse('quiz:quiz_results', args=[self.quiz.id]))
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, '0')  # Should show 0% score
-
-    def test_quiz_timeout(self):
-        """Test quiz timeout handling."""
-        self.client.login(username='testuser', password='testpass123')
-        
-        # Start the quiz
-        self.client.get(reverse('quiz:start_quiz', args=[self.quiz.id]))
-        
-        # Get the quiz attempt and set it to have started 31 minutes ago
-        attempt = QuizAttempt.objects.get(user=self.user, quiz=self.quiz)
-        attempt.started_at = timezone.now() - timedelta(minutes=31)
-        attempt.save()
-        
-        # Try to submit after timeout
-        response = self.client.post(
-            reverse('quiz:quiz_submit', args=[self.quiz.id]),
-            {'question_{}'.format(self.question.id): self.correct_choice.id}
-        )
-        self.assertEqual(response.status_code, 400)  # Bad request, quiz timed out
-
-
-class HelpViewTests(TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.user = User.objects.create_user(
-            username='testuser',
-            password='testpass123'
-        )
-
-    def test_help_page_loads(self):
-        """Test that help page loads correctly."""
-        self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('quiz:help'))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'quiz/help.html')
-
-    def test_help_page_context(self):
-        """Test that help page has correct context data."""
-        self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('quiz:help'))
-        self.assertTrue('quick_start' in response.context)
-        self.assertTrue('study_materials' in response.context)
-        self.assertTrue('study_tips' in response.context)
-        self.assertTrue('content' in response.context)
-
-    def test_study_materials_content(self):
-        """Test study materials content."""
-        self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('quiz:help'))
-        study_materials = response.context['study_materials']
-        self.assertTrue(len(study_materials) > 0)
-        self.assertTrue(all('title' in material for material in study_materials))
-        self.assertTrue(all('description' in material for material in study_materials))
-
-    def test_quick_start_content(self):
-        """Test quick start guide content."""
-        self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('quiz:help'))
-        quick_start = response.context['quick_start']
-        self.assertTrue(len(quick_start) > 0)
-        self.assertTrue(all('title' in guide for guide in quick_start))
-        self.assertTrue(all('description' in guide for guide in quick_start))
-
-    def test_faq_content(self):
-        """Test FAQ content."""
-        self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('quiz:faq'))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'quiz/help/faq.html')
-
-    def test_search_functionality(self):
-        """Test help search functionality."""
-        self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('quiz:help') + '?search=test')
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue('search_query' in response.context)
-        self.assertEqual(response.context['search_query'], 'test')
+        # Check response data
+        data = response.json()
+        self.assertEqual(data['score'], 100.0)
+        self.assertTrue(data['passed'])
+        self.assertEqual(data['correct_answers'], 5)

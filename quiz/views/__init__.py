@@ -6,7 +6,7 @@ from .quiz_views import (
     QuizSubmitView, QuizResultsView
 )
 from .help_views import HelpView, FAQView
-from .auth_views import register
+from .auth_views import register_view as register
 
 __all__ = [
     'QuizListView', 'QuizDetailView', 'QuizStartView',

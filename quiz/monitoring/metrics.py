@@ -1,98 +1,74 @@
 """
-System metrics collection and monitoring.
+System metrics collection for the quiz application.
 """
-from typing import Dict, Any
+from django.db import connection
+from django.core.cache import cache
 import psutil
 import logging
-from django.core.cache import cache
-from django.conf import settings
+import time
 
 logger = logging.getLogger(__name__)
 
 class SystemMetrics:
-    """System metrics collection with caching."""
-    
-    CACHE_KEY_PREFIX = 'system_metrics'
-    CACHE_TIMEOUT = getattr(settings, 'SYSTEM_METRICS_CACHE_TIME', 60)  # 1 minute default
+    """System metrics collection and monitoring."""
     
     @classmethod
-    def get_cpu_metrics(cls) -> Dict[str, Any]:
-        """Get CPU metrics."""
-        try:
-            return {
-                'percent': psutil.cpu_percent(interval=1),
-                'cores': psutil.cpu_count(),
-                'load_avg': psutil.getloadavg()
-            }
-        except Exception as e:
-            logger.error(f"Failed to get CPU metrics: {str(e)}")
-            return {}
-
-    @classmethod
-    def get_memory_metrics(cls) -> Dict[str, Any]:
-        """Get memory metrics."""
-        try:
-            memory = psutil.virtual_memory()
-            return {
-                'total': memory.total,
-                'available': memory.available,
-                'percent': memory.percent,
-                'used': memory.used,
-                'free': memory.free
-            }
-        except Exception as e:
-            logger.error(f"Failed to get memory metrics: {str(e)}")
-            return {}
-
-    @classmethod
-    def get_disk_metrics(cls) -> Dict[str, Any]:
-        """Get disk metrics."""
-        try:
-            disk = psutil.disk_usage('/')
-            return {
-                'total': disk.total,
-                'used': disk.used,
-                'free': disk.free,
-                'percent': disk.percent
-            }
-        except Exception as e:
-            logger.error(f"Failed to get disk metrics: {str(e)}")
-            return {}
-
-    @classmethod
-    def get_network_metrics(cls) -> Dict[str, Any]:
-        """Get network metrics."""
-        try:
-            network = psutil.net_io_counters()
-            return {
-                'bytes_sent': network.bytes_sent,
-                'bytes_recv': network.bytes_recv,
-                'packets_sent': network.packets_sent,
-                'packets_recv': network.packets_recv
-            }
-        except Exception as e:
-            logger.error(f"Failed to get network metrics: {str(e)}")
-            return {}
-
-    @classmethod
-    def get_all_metrics(cls) -> Dict[str, Any]:
-        """Get all system metrics with caching."""
-        cache_key = f'{cls.CACHE_KEY_PREFIX}_all'
-        metrics = cache.get(cache_key)
-        
-        if metrics is None:
-            try:
-                metrics = {
-                    'cpu': cls.get_cpu_metrics(),
-                    'memory': cls.get_memory_metrics(),
-                    'disk': cls.get_disk_metrics(),
-                    'network': cls.get_network_metrics(),
-                    'timestamp': psutil.time.time()
-                }
-                cache.set(cache_key, metrics, cls.CACHE_TIMEOUT)
-                
-            except Exception as e:
-                logger.error(f"Failed to get system metrics: {str(e)}")
-                metrics = {}
-        
+    def collect_metrics(cls):
+        """Collect system metrics."""
+        metrics = {
+            'system': cls.get_system_metrics(),
+            'database': cls.get_database_metrics(),
+            'cache': cls.get_cache_metrics(),
+        }
         return metrics
+    
+    @staticmethod
+    def get_system_metrics():
+        """Get system resource metrics."""
+        try:
+            cpu_percent = psutil.cpu_percent(interval=1)
+            memory = psutil.virtual_memory()
+            disk = psutil.disk_usage('/')
+            
+            return {
+                'cpu_percent': cpu_percent,
+                'memory_percent': memory.percent,
+                'memory_available': memory.available,
+                'disk_percent': disk.percent,
+                'disk_free': disk.free,
+            }
+        except Exception as e:
+            logger.error(f"Failed to collect system metrics: {e}")
+            return {}
+    
+    @staticmethod
+    def get_database_metrics():
+        """Get database connection metrics."""
+        try:
+            with connection.cursor() as cursor:
+                start_time = time.time()
+                cursor.execute("SELECT 1")
+                query_time = time.time() - start_time
+                
+                return {
+                    'connection_count': len(connection.connection.queries),
+                    'query_time': query_time,
+                }
+        except Exception as e:
+            logger.error(f"Failed to collect database metrics: {e}")
+            return {}
+    
+    @staticmethod
+    def get_cache_metrics():
+        """Get cache metrics."""
+        try:
+            start_time = time.time()
+            cache.get('test_key')
+            cache_time = time.time() - start_time
+            
+            return {
+                'cache_time': cache_time,
+            }
+        except Exception as e:
+            logger.error(f"Failed to collect cache metrics: {e}")
+            return {}

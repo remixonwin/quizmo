@@ -22,7 +22,8 @@ class QuizResultsView(LoginRequiredMixin, QuizViewMixin, DetailView):
     def get_queryset(self) -> QuerySet:
         """Get quiz attempt with related data."""
         return QuizAttempt.objects.select_related(
-            'quiz'
+            'quiz',
+            'user'
         ).prefetch_related(
             Prefetch(
                 'answers',
@@ -30,11 +31,7 @@ class QuizResultsView(LoginRequiredMixin, QuizViewMixin, DetailView):
                     'question',
                     'choice'
                 ).prefetch_related(
-                    Prefetch(
-                        'question__choices',
-                        queryset=Choice.objects.filter(is_correct=True),
-                        to_attr='correct_choices'
-                    )
+                    'question__choices'
                 ).order_by('question__order')
             )
         ).filter(
@@ -50,27 +47,24 @@ class QuizResultsView(LoginRequiredMixin, QuizViewMixin, DetailView):
         )
     
     def get_object(self, queryset: QuerySet = None) -> QuizAttempt:
-        """Get most recent completed attempt."""
+        """Get quiz attempt by ID."""
         if queryset is None:
             queryset = self.get_queryset()
+        
+        # Get ID from URL
+        pk = self.kwargs.get('pk')
+        
+        # Try to find attempt by ID first
+        attempt = queryset.filter(id=pk).first()
+        
+        # If not found, try to find most recent attempt for quiz ID
+        if attempt is None:
+            attempt = queryset.filter(quiz_id=pk).order_by('-completed_at').first()
+        
+        if attempt is None:
+            raise Http404("No quiz attempt found")
             
-        # Check cache first
-        cache_key = f'quiz_results_{self.kwargs.get("quiz_id")}_{self.request.user.id}'
-        cached_attempt = cache.get(cache_key)
-        if cached_attempt:
-            return cached_attempt
-            
-        try:
-            attempt = queryset.filter(quiz_id=self.kwargs.get('quiz_id')).latest('completed_at')
-            # Cache for 5 minutes
-            cache.set(cache_key, attempt, 300)
-            return attempt
-        except QuizAttempt.DoesNotExist:
-            logger.warning(
-                f'No completed attempt found for quiz {self.kwargs.get("quiz_id")} '
-                f'and user {self.request.user.id}'
-            )
-            raise Http404('No completed quiz attempt found.')
+        return attempt
     
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         """Add score and related data to context."""
@@ -79,7 +73,7 @@ class QuizResultsView(LoginRequiredMixin, QuizViewMixin, DetailView):
         
         # Get score from attempt
         score = attempt.score or 0
-        passing_score = attempt.quiz.pass_mark
+        passing_score = attempt.quiz.passing_score
         passed = score >= passing_score
         
         context.update({

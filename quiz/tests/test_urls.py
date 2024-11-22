@@ -10,7 +10,7 @@ from django.test import TestCase
 from django.urls import reverse, resolve
 from quiz.views.help_views import HelpView, FAQView
 from quiz.views.quiz_views import QuizListView, QuizStartView, QuizSubmitView, QuizResultsView
-from quiz.views.auth_views import register
+from quiz.views.auth_views import register_view
 
 # Include quiz URLs with namespace
 urlpatterns = [
@@ -18,7 +18,7 @@ urlpatterns = [
     path('', include(('quiz.urls', 'quiz'), namespace='quiz')),
     path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(next_page='quiz:quiz_list'), name='logout'),
-    path('accounts/register/', register, name='register'),
+    path('accounts/register/', register_view, name='register'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 
@@ -32,7 +32,7 @@ class TestUrls(TestCase):
 
     def test_faq_page_url_resolves(self):
         """Test that FAQ page URL resolves to the correct view."""
-        url = reverse('quiz:faq')
+        url = reverse('quiz:help_faq')
         self.assertEqual(resolve(url).func.view_class, FAQView)
 
     def test_quiz_list_url_resolves(self):

@@ -11,9 +11,6 @@ import os
 import sys
 from pathlib import Path
 
-from django.core.wsgi import get_wsgi_application
-from whitenoise import WhiteNoise
-
 # Add the project directory to the Python path
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
@@ -22,13 +19,11 @@ sys.path.append(str(BASE_DIR))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'windsurf_app.settings')
 
 try:
-    # Get the WSGI application
+    from django.core.wsgi import get_wsgi_application
     application = get_wsgi_application()
-    
-    # Wrap the application with WhiteNoise
-    application = WhiteNoise(application)
-    application.add_files(os.path.join(BASE_DIR, 'staticfiles'), prefix='static/')
-    
 except Exception as e:
-    print(f"Error initializing WSGI application: {e}", file=sys.stderr)
+    import traceback
+    print(f"Error in WSGI application: {str(e)}", file=sys.stderr)
+    print("Traceback:", file=sys.stderr)
+    print(traceback.format_exc(), file=sys.stderr)
     raise

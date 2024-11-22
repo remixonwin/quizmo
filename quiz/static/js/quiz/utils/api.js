@@ -23,12 +23,12 @@ async function apiRequest(url, options = {}, useCache = true) {
         if (cachedData) return cachedData;
     }
 
-    // Prepare request options
+    // Prepare request options with CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     const requestOptions = {
         ...options,
         headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCsrfToken(),
+            'X-CSRFToken': csrfToken,
             ...options.headers
         },
         credentials: 'same-origin'
@@ -40,29 +40,38 @@ async function apiRequest(url, options = {}, useCache = true) {
         try {
             const response = await fetch(url, requestOptions);
             
+            // Handle redirects
+            if (response.redirected) {
+                window.location.href = response.url;
+                return;
+            }
+            
+            // Handle JSON responses
+            if (response.headers.get('content-type')?.includes('application/json')) {
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP error! status: ${response.status}`);
+                }
+                return data;
+            }
+            
+            // Handle non-JSON responses
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            const data = await response.json();
+            return response;
             
-            // Cache successful GET requests
-            if (useCache && options.method === 'GET') {
-                await cacheData(cacheKey, data);
-            }
-            
-            return data;
         } catch (error) {
+            console.error(`Attempt ${attempt + 1} failed:`, error);
             lastError = error;
-            console.warn(`API request attempt ${attempt + 1} failed:`, error);
-            
             if (attempt < MAX_RETRIES - 1) {
                 await delay(RETRY_DELAY * Math.pow(2, attempt));
             }
         }
     }
-
-    throw new Error(`API request failed after ${MAX_RETRIES} attempts: ${lastError.message}`);
+    
+    throw lastError;
 }
 
 /**
@@ -128,30 +137,41 @@ function clearExpiredCache() {
 }
 
 /**
- * Get CSRF token from cookie
+ * Submit quiz answers
  */
-function getCsrfToken() {
-    const name = 'csrftoken';
-    let cookieValue = null;
+export async function submitQuizAnswers(formData) {
+    const form = formData.target;
+    const quizId = form.dataset.quizId;
     
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
+    // Convert form data to array of answers
+    const answers = [];
+    for (const [key, value] of new FormData(form).entries()) {
+        if (key.startsWith('question_')) {
+            const questionId = parseInt(key.replace('question_', ''));
+            answers.push({
+                question_id: questionId,
+                choice_id: parseInt(value)
+            });
         }
     }
-    return cookieValue;
-}
 
-/**
- * Delay helper for retry logic
- */
-function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    // Submit answers using form data
+    const submitUrl = form.action;
+    const submitData = new FormData();
+    
+    // Add CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    submitData.append('csrfmiddlewaretoken', csrfToken);
+    
+    // Add answers as form data
+    answers.forEach((answer, index) => {
+        submitData.append(`question_${answer.question_id}`, answer.choice_id);
+    });
+
+    return apiRequest(submitUrl, {
+        method: 'POST',
+        body: submitData
+    }, false);
 }
 
 /**
@@ -179,25 +199,6 @@ export async function fetchQuestionBatch(url, batchNumber, batchSize) {
 }
 
 /**
- * Submit quiz answers with optimistic updates
- */
-export async function submitQuizAnswers(formData, answers) {
-    const data = {
-        answers: Object.fromEntries(formData),
-        metadata: {
-            submittedAt: new Date().toISOString(),
-            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            userAgent: navigator.userAgent
-        }
-    };
-
-    return apiRequest(config.endpoints.submit, {
-        method: 'POST',
-        body: JSON.stringify(data)
-    }, false);
-}
-
-/**
  * Initialize API module
  */
 export function initApi() {
@@ -207,6 +208,18 @@ export function initApi() {
     // Clear expired cache on load
     clearExpiredCache();
 }
+
+// Helper functions
+function getCsrfToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Export functions
+export { apiRequest, getCsrfToken };
 
 // Initialize API module
 initApi();

@@ -1,143 +1,80 @@
-{% extends 'quiz/base.html' %}
+{% extends "base.html" %}
 
-{% block title %}Minnesota DMV Practice Quizzes{% endblock %}
+{% block title %}Minnesota Road Signs Quiz{% endblock %}
 
 {% block content %}
-<div class="row mb-5">
-    <div class="col-lg-8 mx-auto text-center">
-        <h1 class="display-4 mb-4">Minnesota DMV Practice Tests</h1>
-        <p class="lead text-muted mb-4">Prepare for your driver's license test with our comprehensive practice quizzes. We help you master both traffic rules and road signs.</p>
-        <div class="d-flex justify-content-center gap-3">
-            <a href="#quizzes" class="btn btn-primary">
-                <i class="fas fa-play me-2"></i>Start Practice
-            </a>
-            <a href="{% url 'quiz:help' %}" class="btn btn-outline-primary">
-                <i class="fas fa-info-circle me-2"></i>Learn More
-            </a>
-        </div>
-    </div>
-</div>
-
-<div class="row mb-5" id="about">
-    <div class="col-lg-10 mx-auto">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-4">
-                <div class="row align-items-center">
-                    <div class="col-md-6">
-                        <h4 class="card-title mb-4">About the Test</h4>
-                        <ul class="list-unstyled">
-                            <li class="mb-3">
-                                <i class="fas fa-check-circle text-success me-2"></i>
-                                40 multiple-choice questions
-                            </li>
-                            <li class="mb-3">
-                                <i class="fas fa-image text-primary me-2"></i>
-                                10 questions with traffic sign images
-                            </li>
-                            <li class="mb-3">
-                                <i class="fas fa-trophy text-warning me-2"></i>
-                                Need 32 correct answers (80%) to pass
-                            </li>
-                            <li class="mb-3">
-                                <i class="fas fa-infinity text-info me-2"></i>
-                                Unlimited attempts available
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="progress mb-4" style="height: 10px;">
-                            <div class="progress-bar" role="progressbar" style="width: 80%;" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"></div>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">Minnesota Road Signs Practice Quiz</h2>
+                </div>
+                <div class="card-body">
+                    {% if quizzes %}
+                        {% with quiz=quizzes.0 %}
+                        <div class="text-center mb-4">
+                            <h3>{{ quiz.title }}</h3>
+                            <p class="lead">{{ quiz.description }}</p>
+                            <div class="quiz-stats mt-3">
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="stat-item">
+                                            <i class="fas fa-question-circle"></i>
+                                            <span>{{ quiz.question_count }} Questions</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="stat-item">
+                                            <i class="fas fa-clock"></i>
+                                            <span>{{ quiz.time_limit }} Minutes</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="stat-item">
+                                            <i class="fas fa-percent"></i>
+                                            <span>{{ quiz.passing_score }}% to Pass</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <a href="{% url 'quiz:quiz_detail' quiz.id %}" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-play-circle me-2"></i>Start Quiz
+                                </a>
+                            </div>
                         </div>
-                        <p class="text-muted">You need to score at least 80% to pass the test</p>
-                        <div class="d-grid gap-2">
-                            <a href="#quizzes" class="btn btn-primary">
-                                <i class="fas fa-play me-2"></i>Start a Practice Test
-                            </a>
-                            <a href="{% url 'quiz:help' %}" class="btn btn-outline-primary">
-                                <i class="fas fa-question-circle me-2"></i>Need Help?
-                            </a>
+                        {% endwith %}
+                    {% else %}
+                        <div class="text-center">
+                            <p class="lead">The quiz is currently unavailable. Please check back later.</p>
                         </div>
-                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div id="quizzes" class="mb-5">
-    <h2 class="text-center mb-4">Available Practice Tests</h2>
-    {% if quizzes %}
-        <div class="row">
-            {% for quiz in quizzes %}
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="card-title mb-0">{{ quiz.title }}</h5>
-                        </div>
-                        <div class="card-body">
-                            <p class="card-text">{{ quiz.description }}</p>
-                            <ul class="list-unstyled mb-4">
-                                <li class="mb-2">
-                                    <i class="fas fa-clock text-muted me-2"></i>
-                                    Time Limit: {{ quiz.time_limit }} minutes
-                                </li>
-                                <li class="mb-2">
-                                    <i class="fas fa-question-circle text-muted me-2"></i>
-                                    Questions: {{ quiz.question_count }}
-                                </li>
-                                <li>
-                                    <i class="fas fa-trophy text-muted me-2"></i>
-                                    Passing Score: {{ quiz.passing_score }}%
-                                </li>
-                            </ul>
-                            <div class="d-grid">
-                                <a href="{% url 'quiz:quiz_detail' quiz.id %}" class="btn btn-primary">
-                                    <i class="fas fa-play me-2"></i>Take Quiz
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-        
-        {% if is_paginated %}
-        <nav aria-label="Quiz navigation" class="mt-4">
-            <ul class="pagination justify-content-center">
-                {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
-                </li>
-                {% endif %}
-                
-                {% for num in page_obj.paginator.page_range %}
-                    {% if page_obj.number == num %}
-                    <li class="page-item active">
-                        <span class="page-link">{{ num }}</span>
-                    </li>
-                    {% else %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                    </li>
-                    {% endif %}
-                {% endfor %}
-                
-                {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
-        {% endif %}
-    {% else %}
-        <div class="alert alert-info text-center">
-            <i class="fas fa-info-circle me-2"></i>No practice tests are currently available. Please check back later.
-        </div>
-    {% endif %}
-</div>
+<style>
+.quiz-stats {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+}
+.stat-item {
+    padding: 10px;
+    text-align: center;
+}
+.stat-item i {
+    font-size: 24px;
+    color: #007bff;
+    margin-bottom: 10px;
+    display: block;
+}
+.stat-item span {
+    display: block;
+    font-weight: 500;
+}
+</style>
 {% endblock %}

@@ -1,0 +1,26 @@
+[
+  {
+    "model": "quiz.quiz",
+    "pk": 1,
+    "fields": {
+      "title": "Minnesota Road Signs Practice Test",
+      "description": "Official Minnesota DMV road signs practice test. You need to answer 32 out of 40 questions correctly (80%) to pass. The actual DMV test will contain questions about road signs, traffic laws, and safe driving practices.",
+      "time_limit": 60,
+      "passing_score": 80.0,
+      "is_active": true,
+      "is_published": true,
+      "created_at": "2023-11-19T00:00:00Z",
+      "updated_at": "2023-11-19T00:00:00Z",
+      "metadata": {
+        "version": "1.0",
+        "category": "road_signs",
+        "state": "minnesota",
+        "total_questions": 40,
+        "passing_questions": 32,
+        "question_types": {
+          "road_signs": 40
+        }
+      }
+    }
+  }
+]

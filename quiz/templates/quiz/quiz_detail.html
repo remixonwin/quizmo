@@ -1,135 +1,126 @@
-{% extends 'quiz/base.html' %}
+{% extends "base.html" %}
 
-{% block title %}{{ quiz.title }} - Minnesota DMV Practice Test{% endblock %}
+{% block title %}{{ quiz.title }}{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'quiz:quiz_list' %}">Practice Tests</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ quiz.title }}</li>
-        </ol>
-    </nav>
-
-    <div class="row">
-        <div class="col-lg-8">
-            <!-- Quiz Information -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h1 class="h3 mb-0">{{ quiz.title }}</h1>
-                </div>
-                <div class="card-body">
-                    <p class="lead mb-4">{{ quiz.description }}</p>
-                    
-                    <!-- Quiz Details -->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <h2 class="h5 mb-3">Quiz Information</h2>
-                            <ul class="list-unstyled">
-                                <li class="mb-2">
-                                    <i class="fas fa-clock text-muted me-2"></i>
-                                    Time Limit: 30 minutes
-                                </li>
-                                <li class="mb-2">
-                                    <i class="fas fa-question-circle text-muted me-2"></i>
-                                    Questions: {{ question_count }}
-                                </li>
-                                <li class="mb-2">
-                                    <i class="fas fa-trophy text-muted me-2"></i>
-                                    Passing Score: {{ quiz.passing_score }}%
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="col-md-6">
-                            <h2 class="h5 mb-3">Instructions</h2>
-                            <ul class="list-unstyled">
-                                <li class="mb-2">
-                                    <i class="fas fa-info-circle text-info me-2"></i>
-                                    Read each question carefully
-                                </li>
-                                <li class="mb-2">
-                                    <i class="fas fa-check-square text-success me-2"></i>
-                                    Select the best answer
-                                </li>
-                                <li class="mb-2">
-                                    <i class="fas fa-redo text-warning me-2"></i>
-                                    You can retake the quiz if needed
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- Start Quiz Button -->
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'quiz:start_quiz' quiz.id %}" class="btn btn-primary btn-lg">
-                            <i class="fas fa-play me-2"></i>Start Quiz
-                        </a>
-                        <a href="{% url 'quiz:help' %}" class="btn btn-outline-secondary">
-                            <i class="fas fa-question-circle me-2"></i>Need Help?
-                        </a>
-                    </div>
-                </div>
-            </div>
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2 class="h4 mb-0">{{ quiz.title }}</h2>
         </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <h3 class="mb-4">Test Information</h3>
+                    <p class="lead">{{ quiz.description }}</p>
+                    
+                    <div class="test-requirements mt-4">
+                        <h4>Test Requirements</h4>
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <i class="fas fa-question-circle text-primary me-2"></i>
+                                <strong>Total Questions:</strong> 40 questions
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Passing Score:</strong> 32 correct answers (80%)
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-clock text-warning me-2"></i>
+                                <strong>Time Limit:</strong> {{ quiz.time_limit }} minutes
+                            </li>
+                        </ul>
+                    </div>
 
-        <div class="col-lg-4">
-            <!-- Tips Card -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-info text-white">
-                    <h2 class="h5 mb-0">Study Tips</h2>
+                    <div class="test-tips mt-4">
+                        <h4>Test Tips</h4>
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <i class="fas fa-lightbulb text-warning me-2"></i>
+                                Read each question carefully before answering
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-eye text-info me-2"></i>
+                                Study the road sign images closely
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-clock text-danger me-2"></i>
+                                Pace yourself - you have {{ quiz.time_limit }} minutes
+                            </li>
+                            <li class="list-group-item">
+                                <i class="fas fa-redo text-success me-2"></i>
+                                You can retake the test if needed
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <ul class="list-unstyled mb-0">
-                        <li class="mb-3">
-                            <i class="fas fa-book text-info me-2"></i>
-                            Review the Minnesota Driver's Manual
-                        </li>
-                        <li class="mb-3">
-                            <i class="fas fa-pencil-alt text-info me-2"></i>
-                            Take practice notes
-                        </li>
-                        <li class="mb-3">
-                            <i class="fas fa-clock text-info me-2"></i>
-                            Pace yourself during the test
-                        </li>
-                        <li>
-                            <i class="fas fa-lightbulb text-info me-2"></i>
-                            Focus on areas you find challenging
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Resources Card -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-success text-white">
-                    <h2 class="h5 mb-0">Additional Resources</h2>
-                </div>
-                <div class="card-body">
-                    <ul class="list-unstyled mb-0">
-                        <li class="mb-3">
-                            <a href="{% url 'quiz:help' %}" class="text-decoration-none">
-                                <i class="fas fa-question-circle text-success me-2"></i>
-                                Help Center
-                            </a>
-                        </li>
-                        <li class="mb-3">
-                            <a href="{% url 'quiz:faq' %}" class="text-decoration-none">
-                                <i class="fas fa-info-circle text-success me-2"></i>
-                                FAQ
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="text-decoration-none">
-                                <i class="fas fa-book text-success me-2"></i>
-                                Study Guide
-                            </a>
-                        </li>
-                    </ul>
+                
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h4 class="h5 mb-0">Your Progress</h4>
+                        </div>
+                        <div class="card-body">
+                            {% if user_progress %}
+                            <div class="text-center mb-3">
+                                <div class="display-4">{{ user_progress.best_score }}%</div>
+                                <p class="text-muted">Best Score</p>
+                            </div>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-pencil-alt me-2"></i>
+                                    Attempts: {{ user_progress.attempts }}
+                                </li>
+                                <li>
+                                    <i class="fas fa-trophy me-2"></i>
+                                    Status: 
+                                    {% if user_progress.passed %}
+                                    <span class="badge bg-success">Passed</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Not Passed</span>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                            {% else %}
+                            <p class="text-center">No attempts yet</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'quiz:quiz_start' quiz.id %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-play-circle me-2"></i>Start Test
+                        </a>
+                        <a href="{% url 'quiz:help_study_materials' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-book me-2"></i>Study Materials
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.test-requirements .list-group-item i,
+.test-tips .list-group-item i {
+    width: 20px;
+}
+.test-requirements .list-group-item,
+.test-tips .list-group-item {
+    border-left: 4px solid transparent;
+}
+.test-requirements .list-group-item:nth-child(1) {
+    border-left-color: #007bff;
+}
+.test-requirements .list-group-item:nth-child(2) {
+    border-left-color: #28a745;
+}
+.test-requirements .list-group-item:nth-child(3) {
+    border-left-color: #ffc107;
+}
+.test-tips .list-group-item {
+    border-left-color: #6c757d;
+}
+</style>
 {% endblock %}

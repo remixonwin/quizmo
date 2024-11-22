@@ -40,10 +40,10 @@
                     </div>
 
                     {% if user.is_authenticated %}
-                        <a href="{% url 'quiz:take_quiz' quiz.id %}" class="btn btn-primary btn-lg">Start Quiz</a>
+                        <a href="{% url 'quiz:quiz_start' quiz.id %}" class="btn btn-primary btn-lg">Start Quiz</a>
                     {% else %}
                         <div class="alert alert-info">
-                            Please <a href="{% url 'login' %}">login</a> or <a href="{% url 'quiz:register' %}">register</a> to take this quiz.
+                            Please <a href="{% url 'quiz:login' %}">login</a> or <a href="{% url 'quiz:register' %}">register</a> to take this quiz.
                         </div>
                     {% endif %}
                 </div>

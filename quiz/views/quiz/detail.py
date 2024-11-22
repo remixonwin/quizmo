@@ -18,7 +18,7 @@ class QuizDetailView(QuizViewMixin, DetailView):
 
     def get_object(self, queryset=None):
         """Get quiz from cache or database."""
-        quiz_id = self.kwargs.get('quiz_id')
+        quiz_id = self.kwargs.get('pk')
         cache_key = f'quiz_detail_{quiz_id}'
         quiz = cache.get(cache_key)
         
@@ -36,6 +36,7 @@ class QuizDetailView(QuizViewMixin, DetailView):
         """Add questions to context."""
         context = super().get_context_data(**kwargs)
         quiz = self.get_object()
+        questions = []
         
         try:
             # Load questions from bank if needed

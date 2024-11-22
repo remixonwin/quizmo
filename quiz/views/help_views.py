@@ -1,129 +1,165 @@
 """
 Views for help and documentation pages.
 """
+from typing import Dict, Any
 from django.views.generic import TemplateView
 from django.conf import settings
 from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_control
+from django.views.decorators.cache import cache_page, cache_control
 from django.views.decorators.clickjacking import xframe_options_deny
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_protect
+from django.http import Http404, JsonResponse
+from django.urls import reverse
+from django.contrib.auth.mixins import LoginRequiredMixin
+from ..services.help_service import HelpService
 
+def help_view_decorators(cls):
+    """Decorator to apply common security measures to help views."""
+    decorators = [
+        cache_control(no_cache=True, no_store=True, must_revalidate=True),
+        xframe_options_deny,
+        csrf_protect,
+        require_http_methods(["GET"])
+    ]
+    for decorator in decorators:
+        cls = method_decorator(decorator, name='dispatch')(cls)
+    return cls
 
-@method_decorator([
-    cache_control(no_cache=True, no_store=True, must_revalidate=True),
-    xframe_options_deny,
-    csrf_protect,
-    require_http_methods(["GET"])
-], name='dispatch')
-class HelpView(TemplateView):
-    template_name = 'quiz/help/help.html'
-
+class HelpBaseView(TemplateView):
+    """Base view for help pages."""
+    
     def get_context_data(self, **kwargs):
+        """Add common context data for help pages."""
         context = super().get_context_data(**kwargs)
-        search_query = self.request.GET.get('search', '')
+        context.update({
+            'meta_description': 'Access comprehensive study materials and tips for the Minnesota DMV Practice Quiz',
+            'help_sections': HelpService.get_help_sections()
+        })
+        return context
 
-        # Basic page information
+@help_view_decorators
+class HelpView(HelpBaseView):
+    """Display help center page."""
+    template_name = 'quiz/help/help.html'
+    
+    def get_context_data(self, **kwargs: Dict[str, Any]) -> Dict[str, Any]:
+        """Add help content to context."""
+        context = super().get_context_data(**kwargs)
         context.update({
             'title': 'Help Center',
-            'page_title': 'Help Center',
-            'search_query': search_query,
-            'contact_email': getattr(settings, 'CONTACT_EMAIL', 'support@example.com'),
-            'support_phone': getattr(settings, 'SUPPORT_PHONE', None),
-            'meta_description': 'Get help with the Minnesota DMV Practice Quiz. Find answers to frequently asked questions and learn how to use the practice tests effectively.',
+            'sections': HelpService.get_help_sections()
         })
-
-        # Quick start guide
-        context['quick_start'] = [
-            {
-                'title': 'Create an Account',
-                'description': 'Sign up for free to track your progress and save your scores.'
-            },
-            {
-                'title': 'Choose a Test',
-                'description': 'Select from our practice tests based on the latest MN DMV manual.'
-            },
-            {
-                'title': 'Take Practice Tests',
-                'description': 'Answer questions and get instant feedback on your performance.'
-            },
-            {
-                'title': 'Review Results',
-                'description': 'See detailed explanations and track your improvement over time.'
-            }
-        ]
-
-        # Study materials
-        context['study_materials'] = [
-            {
-                'title': 'Minnesota Driver\'s Manual',
-                'description': 'Official state manual with all the information you need to know.',
-                'url': 'https://dps.mn.gov/divisions/dvs/forms-documents/Documents/Minnesota_Drivers_Manual.pdf'
-            },
-            {
-                'title': 'Road Signs Study Guide',
-                'description': 'Learn about all the road signs you need to know for the test.',
-                'url': '#'
-            },
-            {
-                'title': 'Practice Test Tips',
-                'description': 'Tips and strategies for taking practice tests effectively.',
-                'url': '#'
-            }
-        ]
-
-        # FAQs
-        context['faqs'] = [
-            {
-                'question': 'How do I create an account?',
-                'answer': 'Click the "Register" link in the top right corner, fill out the registration form with your email and password, and click "Sign Up". You\'ll receive a confirmation email to activate your account.'
-            },
-            {
-                'question': 'How are quizzes scored?',
-                'answer': 'Quizzes are scored immediately after completion. Each question is worth one point, and you\'ll see detailed explanations for all answers.'
-            },
-            {
-                'question': 'What is the passing score?',
-                'answer': 'You need to score at least 80% (32 out of 40 questions) to pass.'
-            },
-            {
-                'question': 'Can I review my answers?',
-                'answer': 'Yes! After completing a quiz, you can review all your answers, see which ones were correct or incorrect, and read detailed explanations for each question.'
-            }
-        ]
-
         return context
 
-    def dispatch(self, request, *args, **kwargs):
-        """Add security headers to the response."""
-        response = super().dispatch(request, *args, **kwargs)
-        response['X-Content-Type-Options'] = 'nosniff'
-        response['X-XSS-Protection'] = '1; mode=block'
-        response['Pragma'] = 'no-cache'
-        response['Expires'] = '0'
-        return response
-
-
-@method_decorator([
-    cache_control(private=True, max_age=3600),
-    xframe_options_deny,
-    csrf_protect,
-    require_http_methods(["GET"])
-], name='dispatch')
-class FAQView(TemplateView):
-    """Display frequently asked questions page."""
-    template_name = 'quiz/help/faq.html'
-
-    def get_context_data(self, **kwargs):
+@help_view_decorators
+class QuickStartView(HelpBaseView):
+    """Display quick start guide page."""
+    template_name = 'quiz/help/quick_start.html'
+    
+    def get_context_data(self, **kwargs: Dict[str, Any]) -> Dict[str, Any]:
+        """Add quick start guide content to context."""
         context = super().get_context_data(**kwargs)
-        context['title'] = 'Frequently Asked Questions'
-        context['page_title'] = 'FAQ'
-        context['meta_description'] = 'Frequently asked questions about the Minnesota DMV Practice Quiz. Find answers to common questions about practice tests, scoring, and test preparation.'
+        quick_start = HelpService.get_quick_start_guide()
+        context.update({
+            'title': 'Quick Start Guide',
+            'quick_start_guide': quick_start['guide'],
+            'quick_start_faqs': quick_start['faqs']
+        })
         return context
 
-    def dispatch(self, request, *args, **kwargs):
-        """Add security headers to the response."""
-        response = super().dispatch(request, *args, **kwargs)
-        response['X-Content-Type-Options'] = 'nosniff'
-        response['X-XSS-Protection'] = '1; mode=block'
-        return response
+@help_view_decorators
+class StudyMaterialsView(HelpBaseView):
+    """Display study materials page."""
+    template_name = 'quiz/help/study_materials.html'
+    
+    def get_context_data(self, **kwargs: Dict[str, Any]) -> Dict[str, Any]:
+        """Add study materials to context."""
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'title': 'Study Materials',
+            'study_materials': [
+                {
+                    'title': 'Minnesota Driver\'s Manual',
+                    'description': 'Official study guide from the Minnesota Department of Public Safety.',
+                    'link': settings.MN_DRIVERS_MANUAL_URL,
+                    'icon': 'book'
+                },
+                {
+                    'title': 'Road Signs Guide',
+                    'description': 'Learn Minnesota road signs and traffic signals.',
+                    'link': reverse('quiz:help_road_signs'),
+                    'icon': 'traffic-light'
+                }
+            ],
+            'study_tips': [
+                {
+                    'title': 'Review Regularly',
+                    'description': 'Set aside time each day to study Minnesota traffic laws.',
+                    'icon': 'calendar'
+                },
+                {
+                    'title': 'Track Progress',
+                    'description': 'Monitor your scores to identify areas for improvement.',
+                    'icon': 'chart-line'
+                }
+            ]
+        })
+        return context
+
+@help_view_decorators
+class FAQView(HelpBaseView):
+    """Display FAQ page."""
+    template_name = 'quiz/help/faq.html'
+    
+    def get_context_data(self, **kwargs: Dict[str, Any]) -> Dict[str, Any]:
+        """Add FAQs to context."""
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'title': 'Frequently Asked Questions',
+            'categories': settings.HELP_FAQS,
+            'meta_description': 'Find answers to common questions about the Minnesota DMV Practice Quiz'
+        })
+        return context
+
+@help_view_decorators
+class HelpSearchView(HelpBaseView):
+    """Display help search results page."""
+    template_name = 'quiz/help/search.html'
+    
+    def get_context_data(self, **kwargs: Dict[str, Any]) -> Dict[str, Any]:
+        """Add search results to context."""
+        context = super().get_context_data(**kwargs)
+        query = self.request.GET.get('q', '')
+        context.update({
+            'title': 'Help Search Results',
+            'query': query,
+            'results': HelpService.search_help_content(query) if query else []
+        })
+        return context
+    
+    def get(self, request, *args, **kwargs):
+        """Handle GET request with optional JSON response."""
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            query = request.GET.get('q', '')
+            results = HelpService.search_help_content(query) if query else []
+            return JsonResponse({'results': results})
+        return super().get(request, *args, **kwargs)
+
+@help_view_decorators
+class HelpContactView(HelpBaseView):
+    """Display help contact page."""
+    template_name = 'quiz/help/contact.html'
+    
+    def get_context_data(self, **kwargs: Dict[str, Any]) -> Dict[str, Any]:
+        """Add contact information to context."""
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'title': 'Contact Support',
+            'contact_info': {
+                'email': settings.SUPPORT_EMAIL,
+                'hours': 'Monday - Friday, 9:00 AM - 5:00 PM CST',
+                'response_time': '24-48 hours'
+            }
+        })
+        return context

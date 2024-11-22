@@ -4,8 +4,8 @@ Quiz view imports.
 from .quiz.list import QuizListView
 from .quiz.detail import QuizDetailView
 from .quiz.start import QuizStartView
-from .quiz.take import view as QuizTakeView
-from .quiz.submit import view as QuizSubmitView
+from .quiz.take import QuizTakeView
+from .quiz.submit import QuizSubmitView
 from .quiz.results import QuizResultsView
 
 __all__ = [

@@ -36,19 +36,19 @@
                     </div>
                     <div class="col-md-4">
                         <div class="h5">Required to Pass</div>
-                        <div class="display-6">{{ required_to_pass|floatformat:1 }}%</div>
+                        <div class="display-6">{{ passing_score|floatformat:1 }}%</div>
                     </div>
                 </div>
                 
                 {% if passed %}
                 <div class="alert alert-success">
                     <h4 class="alert-heading">Congratulations! You Passed! 🎉</h4>
-                    <p>You scored {{ score|floatformat:1 }}%, which is above the required {{ required_to_pass|floatformat:1 }}% passing score.</p>
+                    <p>You scored {{ score|floatformat:1 }}%, which is above the required {{ passing_score|floatformat:1 }}% passing score.</p>
                 </div>
                 {% else %}
                 <div class="alert alert-danger">
                     <h4 class="alert-heading">Not Passed</h4>
-                    <p>You need at least {{ required_to_pass|floatformat:1 }}% to pass. Your score was {{ score|floatformat:1 }}%. Please review the material and try again.</p>
+                    <p>You need at least {{ passing_score|floatformat:1 }}% to pass. Your score was {{ score|floatformat:1 }}%. Please review the material and try again.</p>
                 </div>
                 {% endif %}
             </div>
@@ -89,7 +89,7 @@
                 <a href="{% url 'quiz:quiz_list' %}" class="btn btn-primary">
                     <i class="fas fa-arrow-left me-2"></i>Back to Quiz List
                 </a>
-                <a href="{% url 'quiz:take_quiz' quiz.id %}" class="btn btn-secondary">
+                <a href="{% url 'quiz:quiz_start' quiz.id %}" class="btn btn-secondary">
                     <i class="fas fa-redo me-2"></i>Try Again
                 </a>
             </div>

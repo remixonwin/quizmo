@@ -1,17 +1,14 @@
 """
-Quiz Application Middleware Package
-Contains middleware components for security, performance, and monitoring.
+Middleware package for the quiz application.
 """
-
-from .security import SecurityHeadersMiddleware, CustomSecurityMiddleware
-from .access import AdminAccessMiddleware
-from .cache import CacheControlMiddleware
-from .monitoring import RequestMonitoringMiddleware
+from .security import SecurityMiddleware
+from .monitoring import MonitoringMiddleware
+from .logging import LoggingMiddleware
+from .rate_limit import RateLimitMiddleware
 
 __all__ = [
-    'SecurityHeadersMiddleware',
-    'CustomSecurityMiddleware',
-    'AdminAccessMiddleware',
-    'CacheControlMiddleware',
-    'RequestMonitoringMiddleware',
+    'SecurityMiddleware',
+    'MonitoringMiddleware',
+    'LoggingMiddleware',
+    'RateLimitMiddleware',
 ]

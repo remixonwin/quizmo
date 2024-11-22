@@ -1,0 +1,278 @@
+{% extends "quiz/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">{{ quiz.title }}</h3>
+                    {% if quiz.time_limit %}
+                    <div class="text-muted">Time Remaining: <span id="timer">{{ time_remaining }}</span></div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-body">
+                    <div class="progress mb-4">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: {% widthratio question_number total_questions 100 %}%;" 
+                             aria-valuenow="{{ question_number }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="{{ total_questions }}">
+                            Question {{ question_number }} of {{ total_questions }}
+                        </div>
+                    </div>
+
+                    <form method="post" action="{% url 'quiz:quiz_submit' quiz.id %}" id="quiz-form" data-quiz-id="{{ quiz.id }}">
+                        {% csrf_token %}
+                        
+                        <div id="all-answers"></div> <!-- Added div to hold hidden inputs for all answers -->
+                        
+                        <div class="question-card">
+                            <h4 class="mb-3">{{ current_question.text }}</h4>
+                            
+                            {% if current_question.image %}
+                            <div class="mb-3">
+                                <img src="{{ current_question.image.url }}" alt="Question Image" class="img-fluid">
+                            </div>
+                            {% endif %}
+                            
+                            <div class="choices">
+                                {% for choice in current_question.choices.all %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input answer-input" type="radio" name="question_{{ current_question.id }}" id="choice_{{ choice.id }}" value="{{ choice.id }}" required>
+                                    <label class="form-check-label" for="choice_{{ choice.id }}">
+                                        {{ choice.text }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-4">
+                            {% if prev_question is not None %}
+                            <a href="?question={{ prev_question }}" class="btn btn-secondary prev-btn">Previous Question</a>
+                            {% else %}
+                            <div></div>
+                            {% endif %}
+
+                            <div class="d-flex gap-2">
+                                {% if next_question is not None %}
+                                <a href="?question={{ next_question }}" class="btn btn-primary next-btn">Next Question</a>
+                                {% else %}
+                                <button type="submit" class="btn btn-success">Submit Quiz</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize quiz state
+    let quizState = {
+        answers: {},  // Initialize as empty object
+        currentQuestion: {{ question_number }},
+        totalQuestions: {{ total_questions }},
+        timeLimit: {{ quiz.time_limit|default:0 }},
+        timeRemaining: {{ time_remaining|default:0 }}
+    };
+
+    // Load saved answers from localStorage on page load
+    function loadSavedAnswers() {
+        const savedAnswers = localStorage.getItem('quizAnswers_{{ quiz.id }}');
+        if (savedAnswers) {
+            try {
+                quizState.answers = JSON.parse(savedAnswers);
+                console.log('Loaded answers from localStorage:', quizState.answers);
+                updateHiddenInputs();
+            } catch (e) {
+                console.error('Error loading saved answers:', e);
+                localStorage.removeItem('quizAnswers_{{ quiz.id }}');
+                quizState.answers = {};
+            }
+        }
+    }
+
+    // Save answer to localStorage
+    function saveAnswer(questionId, choiceId) {
+        questionId = parseInt(questionId);
+        choiceId = parseInt(choiceId);
+        
+        if (!questionId || !choiceId) {
+            console.error('Invalid question or choice ID:', questionId, choiceId);
+            return;
+        }
+        
+        quizState.answers[questionId] = choiceId;
+        try {
+            localStorage.setItem('quizAnswers_{{ quiz.id }}', JSON.stringify(quizState.answers));
+            console.log('Saved answer:', questionId, choiceId);
+            console.log('Current answers:', quizState.answers);
+            updateHiddenInputs();
+        } catch (e) {
+            console.error('Error saving answer:', e);
+        }
+    }
+
+    // Update hidden inputs with all answers
+    function updateHiddenInputs() {
+        const allAnswersDiv = document.getElementById('all-answers');
+        allAnswersDiv.innerHTML = ''; // Clear previous inputs
+        
+        // Add CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        allAnswersDiv.appendChild(csrfInput);
+        
+        // Add all answers
+        Object.entries(quizState.answers).forEach(([questionId, choiceId]) => {
+            if (!questionId || !choiceId) return;
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = `question_${questionId}`;
+            input.value = choiceId;
+            allAnswersDiv.appendChild(input);
+            console.log('Added hidden input:', questionId, choiceId);
+        });
+    }
+
+    // Check if all questions are answered
+    function validateAllQuestionsAnswered() {
+        const answeredCount = Object.keys(quizState.answers).length;
+        console.log('Total answers:', answeredCount);
+        console.log('All answers:', quizState.answers);
+        
+        if (answeredCount < {{ total_questions }}) {
+            const remaining = {{ total_questions }} - answeredCount;
+            alert(`Please answer all questions before submitting. You have ${remaining} question${remaining === 1 ? '' : 's'} remaining.`);
+            return false;
+        }
+        return true;
+    }
+
+    // Handle form submission
+    document.getElementById('quiz-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Save current answer if one is selected
+        const currentQuestionId = document.querySelector('.answer-input').name.replace('question_', '');
+        const currentAnswer = document.querySelector(`input[name="question_${currentQuestionId}"]:checked`);
+        
+        if (currentAnswer) {
+            saveAnswer(currentQuestionId, currentAnswer.value);
+        }
+        
+        // Validate all questions are answered
+        if (!validateAllQuestionsAnswered()) {
+            // Find first unanswered question
+            for (let i = 1; i <= {{ total_questions }}; i++) {
+                if (!quizState.answers[i]) {
+                    window.location.href = `?question=${i}`;
+                    return;
+                }
+            }
+            return;
+        }
+        
+        try {
+            // Create FormData from the form
+            const formData = new FormData(this);
+            
+            // Add all answers to FormData
+            Object.entries(quizState.answers).forEach(([questionId, choiceId]) => {
+                formData.set(`question_${questionId}`, choiceId);
+            });
+            
+            // Submit form with fetch
+            const response = await fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                credentials: 'same-origin'
+            });
+            
+            if (response.ok) {
+                // Clear localStorage and redirect to results
+                localStorage.removeItem('quizAnswers_{{ quiz.id }}');
+                window.location.href = response.url;
+            } else {
+                const data = await response.json();
+                alert(data.error || 'An error occurred while submitting the quiz');
+            }
+        } catch (error) {
+            console.error('Error submitting quiz:', error);
+            alert('An error occurred while submitting the quiz. Please try again.');
+        }
+    });
+
+    // Save answer when radio button changes
+    document.querySelectorAll('.answer-input').forEach(input => {
+        input.addEventListener('change', function() {
+            const questionId = this.name.replace('question_', '');
+            saveAnswer(questionId, this.value);
+        });
+    });
+
+    // Load saved answers on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadSavedAnswers();
+        loadSavedAnswer();
+    });
+
+    // Format time as MM:SS
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+
+    // Timer functionality
+    if (quizState.timeRemaining > 0) {
+        const timerElement = document.getElementById('timer');
+        timerElement.textContent = formatTime(quizState.timeRemaining);
+        
+        const timerInterval = setInterval(() => {
+            quizState.timeRemaining--;
+            
+            if (quizState.timeRemaining <= 0) {
+                clearInterval(timerInterval);
+                if (validateAllQuestionsAnswered()) {
+                    updateHiddenInputs(); // Update hidden inputs before time-based submission
+                    document.getElementById('quiz-form').submit();
+                } else {
+                    alert('Time is up! Please answer all remaining questions quickly.');
+                }
+                return;
+            }
+            
+            timerElement.textContent = formatTime(quizState.timeRemaining);
+        }, 1000);
+    }
+
+    // Navigation validation
+    document.querySelectorAll('.prev-btn, .next-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            const questionId = document.querySelector('.answer-input').name.replace('question_', '');
+            const answered = document.querySelector(`input[name="question_${questionId}"]:checked`);
+            
+            if (!answered) {
+                e.preventDefault();
+                alert('Please answer the current question before moving to another question.');
+            }
+        });
+    });
+</script>
+{% endblock extra_js %}

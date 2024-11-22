@@ -137,6 +137,28 @@ class QuizViewMixin:
         remaining = max(time_limit - time_elapsed, timedelta(0))
         return int(remaining.total_seconds())
     
+    def handle_timeout(self, attempt: QuizAttempt) -> bool:
+        """Handle quiz timeout."""
+        if not attempt.started_at or attempt.completed_at:
+            return False
+            
+        time_limit = timedelta(minutes=self.get_time_limit())
+        time_elapsed = timezone.now() - attempt.started_at
+        
+        if time_elapsed > time_limit:
+            # Mark attempt as completed
+            attempt.completed_at = timezone.now()
+            attempt.save()
+            
+            # Clear cache
+            cache_key = f'attempt_{attempt.user.id}_{attempt.quiz_id}'
+            cache.delete(cache_key)
+            
+            logger.info(f'Attempt {attempt.id} timed out after {time_elapsed}')
+            return True
+            
+        return False
+    
     def check_time_limit(
         self,
         attempt: QuizAttempt,
@@ -152,7 +174,7 @@ class QuizViewMixin:
                 'Quiz time limit exceeded. Your answers have been automatically submitted.'
             )
             self.complete_attempt(attempt)
-            return redirect('quiz:quiz_results', quiz_id=attempt.quiz_id)
+            return redirect('quiz:quiz_results', pk=attempt.quiz_id)
         
         time_limit = timedelta(minutes=self.get_time_limit())
         end_time = attempt.started_at + time_limit
@@ -193,5 +215,6 @@ class QuizViewMixin:
         **kwargs
     ) -> HttpResponseRedirect:
         """Handle quiz error with redirect."""
+        logger.error(message)
         messages.error(request, message)
         return redirect(redirect_url, **kwargs)

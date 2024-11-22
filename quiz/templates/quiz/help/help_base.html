@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}{% block help_title %}{% endblock %} - Minnesota DMV Practice Quiz{% endblock %}
+
+{% block meta %}
+<meta name="description" content="{% block help_description %}Minnesota DMV Practice Quiz - Help Center{% endblock %}">
+<meta name="keywords" content="Minnesota DMV, Practice Quiz, Help, FAQ, Study Guide">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .navbar, .footer, .btn, .search-form { display: none !important; }
+        .card { border: none !important; box-shadow: none !important; }
+        .accordion-button::after { display: none !important; }
+        .accordion-collapse { display: block !important; }
+        a[href]:after { content: " (" attr(href) ")"; }
+        .print-friendly { display: block !important; }
+    }
+
+    .responsive-card {
+        transition: transform 0.2s;
+    }
+
+    .responsive-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .help-search {
+        background-color: #f8f9fa;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border-radius: 0.5rem;
+    }
+
+    .help-section {
+        margin-bottom: 2rem;
+    }
+
+    .help-section h2 {
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .study-tip {
+        border-left: 4px solid #007bff;
+        padding-left: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .help-search {
+            padding: 1rem;
+        }
+        .responsive-card {
+            margin-bottom: 1rem;
+        }
+    }
+
+    /* Accessibility */
+    .skip-link {
+        position: absolute;
+        left: -9999px;
+        z-index: 999;
+        padding: 1em;
+        background-color: white;
+        color: black;
+        opacity: 0;
+    }
+    .skip-link:focus {
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<main role="main">
+    <div class="container mt-4" id="main-content">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                {% block breadcrumb %}{% endblock %}
+            </ol>
+        </nav>
+
+        <h1 class="mb-4">{% block page_title %}{% endblock %}</h1>
+
+        {% block help_content %}{% endblock %}
+    </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}{% endblock %}

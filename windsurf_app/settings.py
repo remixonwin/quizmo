@@ -52,7 +52,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'quiz.middleware.CustomSecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -60,7 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'quiz.middleware.SecurityHeadersMiddleware',
+    'quiz.middleware.SecurityMiddleware',
 ]
 
 ROOT_URLCONF = 'windsurf_app.urls'
@@ -157,7 +156,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 os.makedirs(os.path.join(BASE_DIR, 'static'), exist_ok=True)
 
 # Media files (user uploaded files)
-MEDIA_URL = 'media/'
+MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Security settings
@@ -196,10 +195,29 @@ CACHES = {
 # Cache timeout settings
 CACHE_TIMEOUT = 3600  # 1 hour
 
-# Login/Logout Settings
-LOGIN_REDIRECT_URL = 'quiz:quiz_list'
-LOGOUT_REDIRECT_URL = 'home'
-LOGIN_URL = 'login'
+# Crispy Forms Settings
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
+
+# Authentication settings
+LOGIN_URL = 'quiz:login'
+LOGIN_REDIRECT_URL = 'quiz:dashboard'
+LOGOUT_REDIRECT_URL = 'quiz:login'
+
+# Authentication messages
+LOGIN_ERROR_MESSAGE = 'Invalid username/email or password.'
+USERNAME_EXISTS_MESSAGE = 'This username is already taken.'
+EMAIL_EXISTS_MESSAGE = 'This email is already registered.'
+PASSWORD_MISMATCH_MESSAGE = 'Passwords do not match.'
+EMAIL_NOT_REGISTERED_MESSAGE = 'This email is not registered.'
+ACCOUNT_LOCKED_MESSAGE = 'Account locked. Please try again later.'
+
+# Security settings
+MAX_LOGIN_ATTEMPTS = 5
+LOGIN_ATTEMPT_TIMEOUT = 300  # 5 minutes in seconds
+
+# Login Security Settings
+ACCOUNT_LOCKOUT_DURATION = 900  # Duration in seconds (15 minutes)
 
 # Email Settings
 EMAIL_BACKEND = os.environ.get(
@@ -216,10 +234,6 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Crispy Forms Settings
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
-CRISPY_ALLOWED_TEMPLATE_PACKS = ('bootstrap4',)
 
 # Quiz Settings
 QUIZ_TIME_LIMIT = 30  # minutes
@@ -254,6 +268,9 @@ QUIZ_FAQS = [
     }
 ]
 
+# Logging level
+LOGLEVEL = os.getenv('DJANGO_LOG_LEVEL', 'INFO')
+
 # Logging Configuration
 LOGGING = {
     'version': 1,
@@ -282,7 +299,7 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['console', 'file'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'level': LOGLEVEL,
             'propagate': True,
         },
         'quiz': {

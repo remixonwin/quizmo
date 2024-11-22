@@ -1,88 +1,76 @@
 """
-Health check implementations for application components.
+Health checks for the quiz application.
 """
-from typing import Dict, Any, Optional
-import logging
-import time
 from django.db import connection
 from django.core.cache import cache
-from django.conf import settings
-from .metrics import SystemMetrics
+import logging
 
 logger = logging.getLogger(__name__)
 
 class HealthCheck:
-    """Base health check implementation."""
-    
-    TIMEOUT = getattr(settings, 'HEALTH_CHECK_TIMEOUT', 30)  # seconds
-    CACHE_KEY_PREFIX = 'health'
+    """Base health check class."""
     
     @classmethod
-    def check_component(cls, component_name: str, check_func) -> Dict[str, Any]:
-        """
-        Generic component health check with timing.
+    def check_health(cls):
+        """Run all health checks."""
+        health_status = {
+            'status': 'healthy',
+            'checks': {
+                'database': DatabaseHealth.check(),
+                'cache': CacheHealth.check(),
+            }
+        }
         
-        Args:
-            component_name: Name of component being checked
-            check_func: Function to check component health
-            
-        Returns:
-            Health check results with timing
-        """
-        start_time = time.time()
-        status = 'healthy'
-        error = None
+        # If any check failed, mark overall status as unhealthy
+        if any(not check['healthy'] for check in health_status['checks'].values()):
+            health_status['status'] = 'unhealthy'
         
+        return health_status
+
+class DatabaseHealth:
+    """Database health check."""
+    
+    @staticmethod
+    def check():
+        """Check database connection health."""
         try:
-            check_func()
-        except Exception as e:
-            status = 'unhealthy'
-            error = str(e)
-            logger.error(f"{component_name} health check failed: {error}")
-        
-        elapsed = time.time() - start_time
-        
-        return {
-            'status': status,
-            'responseTime': elapsed,
-            'error': error
-        }
-
-    @classmethod
-    def get_full_status(cls) -> Dict[str, Any]:
-        """Get full application health status."""
-        return {
-            'status': 'ok',
-            'database': DatabaseHealth.check(),
-            'cache': CacheHealth.check(),
-            'system': SystemMetrics.get_all_metrics()
-        }
-
-
-class DatabaseHealth(HealthCheck):
-    """Database health check implementation."""
-    
-    @classmethod
-    def check(cls) -> Dict[str, Any]:
-        """Check database health."""
-        def check_db():
             with connection.cursor() as cursor:
-                cursor.execute('SELECT 1')
-                cursor.fetchone()
-        
-        return cls.check_component('Database', check_db)
+                cursor.execute("SELECT 1")
+                return {
+                    'healthy': True,
+                    'message': 'Database connection successful'
+                }
+        except Exception as e:
+            logger.error(f"Database health check failed: {e}")
+            return {
+                'healthy': False,
+                'message': f'Database connection failed: {str(e)}'
+            }
 
-
-class CacheHealth(HealthCheck):
-    """Cache health check implementation."""
+class CacheHealth:
+    """Cache health check."""
     
-    @classmethod
-    def check(cls) -> Dict[str, Any]:
-        """Check cache health."""
-        def check_cache():
-            key = f'{cls.CACHE_KEY_PREFIX}_test'
-            cache.set(key, 'test', 1)
-            cache.get(key)
-            cache.delete(key)
-        
-        return cls.check_component('Cache', check_cache)
+    @staticmethod
+    def check():
+        """Check cache connection health."""
+        try:
+            cache.set('health_check', True, 10)
+            result = cache.get('health_check')
+            cache.delete('health_check')
+            
+            if result is True:
+                return {
+                    'healthy': True,
+                    'message': 'Cache connection successful'
+                }
+            else:
+                return {
+                    'healthy': False,
+                    'message': 'Cache get operation failed'
+                }
+        except Exception as e:
+            logger.error(f"Cache health check failed: {e}")
+            return {
+                'healthy': False,
+                'message': f'Cache connection failed: {str(e)}'
+            }

@@ -33,11 +33,12 @@ class AttemptResult:
         time_taken: float,
         passed: bool
     ):
-        self._score = score
-        self._correct_answers = correct_answers
-        self._total_questions = total_questions
-        self._time_taken = time_taken
-        self._passed = passed
+        # Use object.__setattr__ to bypass immutability during initialization
+        object.__setattr__(self, '_score', score)
+        object.__setattr__(self, '_correct_answers', correct_answers)
+        object.__setattr__(self, '_total_questions', total_questions)
+        object.__setattr__(self, '_time_taken', time_taken)
+        object.__setattr__(self, '_passed', passed)
     
     @property
     def score(self) -> float:
@@ -100,123 +101,80 @@ class QuizAttempt(TimestampedModel, CachedMixin):
         return bool(self.completed_at)
     
     @property
-    def is_in_progress(self) -> bool:
-        """Check if attempt is in progress."""
-        return bool(self.started_at and not self.completed_at)
-    
-    @property
-    def has_passed(self) -> bool:
-        """Check if attempt passed."""
-        return bool(
-            self.score is not None and
-            self.score >= self.quiz.pass_mark
-        )
-    
-    @memoize
-    def get_answers(self) -> models.QuerySet:
-        """Get attempt answers with caching."""
-        return self.answers.select_related('question', 'choice')
-    
-    @memoize
-    def get_result(self) -> AttemptResult:
-        """Get attempt result."""
-        if not self.is_completed:
-            return None
-            
-        answers = self.get_answers()
-        total_questions = self.quiz.questions.count()
-        correct_answers = sum(
-            1 for a in answers
-            if a.choice and a.choice.is_correct
-        )
+    def time_remaining(self) -> int:
+        """Get remaining time in seconds."""
+        if not self.started_at or self.is_completed:
+            return 0
         
-        score = (correct_answers / total_questions * 100) if total_questions else 0
+        elapsed = (timezone.now() - self.started_at).total_seconds()
+        remaining = (self.quiz.time_limit * 60) - elapsed
         
-        return AttemptResult(
-            score=score,
-            correct_answers=correct_answers,
-            total_questions=total_questions,
-            time_taken=self.time_taken or 0,
-            passed=score >= self.quiz.pass_mark
-        )
+        return max(0, int(remaining))
     
     def start(self) -> None:
-        """Start quiz attempt."""
+        """Start the quiz attempt."""
         if self.started_at:
             raise ValidationError('Attempt already started')
             
         self.started_at = timezone.now()
         self.save()
-        logger.info(f'Started attempt {self.id}')
+        
+        logger.info(f'Started attempt {self.id} for quiz {self.quiz.id}')
     
     def complete(self) -> None:
-        """Complete quiz attempt."""
+        """Complete the quiz attempt."""
         if self.completed_at:
             raise ValidationError('Attempt already completed')
             
         if not self.started_at:
             raise ValidationError('Attempt not started')
             
-        now = timezone.now()
-        self.completed_at = now
-        self.time_taken = (now - self.started_at).total_seconds()
+        self.completed_at = timezone.now()
+        self.time_taken = (self.completed_at - self.started_at).total_seconds()
         
-        # Calculate result
-        result = self.get_result()
-        if result:
-            self.score = result.score
-            
+        # Calculate score
+        total_questions = self.quiz.total_questions
+        correct_answers = self.answers.filter(choice__is_correct=True).count()
+        self.score = (correct_answers / total_questions) * 100
+        
         self.save()
-        logger.info(f'Completed attempt {self.id} with score {self.score}')
+        
+        logger.info(f'Completed attempt {self.id} for quiz {self.quiz.id}')
     
-    def add_answer(self, question_id: int, choice_id: int) -> 'UserAnswer':
-        """Add answer to attempt."""
-        if self.is_completed:
-            raise ValidationError('Cannot add answer to completed attempt')
+    @property
+    def has_passed(self) -> bool:
+        """Check if attempt has passed."""
+        if not self.is_completed or self.score is None:
+            return False
+        return self.score >= self.quiz.passing_score
+    
+    def get_result(self) -> AttemptResult:
+        """Get attempt result."""
+        if not self.is_completed:
+            raise ValidationError('Attempt not completed')
             
-        if not self.is_in_progress:
-            raise ValidationError('Attempt not in progress')
-            
-        from .question import Question, Choice
-        
-        # Validate question and choice
-        question = Question.objects.filter(
-            quiz=self.quiz,
-            id=question_id
-        ).first()
-        
-        if not question:
-            raise ValidationError('Invalid question')
-            
-        choice = Choice.objects.filter(
-            question=question,
-            id=choice_id
-        ).first()
-        
-        if not choice:
-            raise ValidationError('Invalid choice')
-            
-        # Create answer
-        answer = UserAnswer.objects.create(
-            attempt=self,
-            question=question,
-            choice=choice
+        return AttemptResult(
+            score=self.score,
+            correct_answers=self.answers.filter(choice__is_correct=True).count(),
+            total_questions=self.quiz.total_questions,
+            time_taken=self.time_taken,
+            passed=self.has_passed
         )
-        
-        logger.info(f'Added answer {answer.id} to attempt {self.id}')
-        return answer
     
-    def save(self, *args, **kwargs):
-        """Save attempt and clear caches."""
-        # Clear cached answers
-        if hasattr(self.get_answers, 'cache_clear'):
-            self.get_answers.cache_clear()
-        
-        # Clear cached result
-        if hasattr(self.get_result, 'cache_clear'):
-            self.get_result.cache_clear()
-        
-        super().save(*args, **kwargs)
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert attempt to dictionary."""
+        return {
+            'id': self.id,
+            'quiz': self.quiz.title,
+            'user': self.user.username,
+            'started_at': self.started_at,
+            'completed_at': self.completed_at,
+            'score': self.score,
+            'time_taken': self.time_taken,
+            'passed': self.has_passed,
+            'answers_count': self.answers.count()
+        }
+
 
 class UserAnswer(TimestampedModel):
     """User answer model."""
@@ -253,6 +211,8 @@ class UserAnswer(TimestampedModel):
     def to_dict(self) -> Dict[str, Any]:
         """Convert answer to dictionary."""
         return {
+            'id': self.id,
+            'attempt': self.attempt.id,
             'question': self.question.text,
             'choice': self.choice.text if self.choice else None,
             'is_correct': self.is_correct

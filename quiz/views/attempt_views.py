@@ -1,7 +1,7 @@
 """
 Views for handling quiz attempts, submissions, and results.
 """
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, HttpResponseBadRequest
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
@@ -74,9 +74,7 @@ def take_quiz(request, quiz_id: int):
     
     if ongoing_attempt and ongoing_attempt.quiz_id != quiz_id:
         messages.warning(request, 'You have another quiz in progress. Please complete it first.')
-        return HttpResponseRedirect(
-            reverse('quiz:take_quiz', kwargs={'quiz_id': ongoing_attempt.quiz_id})
-        )
+        return HttpResponseBadRequest('Cannot start a new quiz while another is in progress')
     
     # Handle new attempt request
     if request.GET.get('start_new'):

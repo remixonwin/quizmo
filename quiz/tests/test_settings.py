@@ -61,15 +61,58 @@ TEMPLATES = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'test_db.sqlite3'),
-        'TEST': {
-            'NAME': ':memory:',
-        },
+        'NAME': ':memory:',
     }
 }
 
+# Email settings for testing
+EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
+
+# Authentication settings
+MAX_LOGIN_ATTEMPTS = 5
+LOGIN_ATTEMPT_TIMEOUT = 300  # 5 minutes
+PASSWORD_RESET_TIMEOUT = 3600  # 1 hour
+ACCOUNT_LOCKOUT_DURATION = 300  # 5 minutes
+BLACKLISTED_EMAIL_DOMAINS = ['example.com', 'test.com']
+
 # Password validation
-AUTH_PASSWORD_VALIDATORS = []
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+    {
+        'NAME': 'quiz.validators.UppercaseValidator',
+    },
+    {
+        'NAME': 'quiz.validators.LowercaseValidator',
+    },
+    {
+        'NAME': 'quiz.validators.DigitValidator',
+    },
+    {
+        'NAME': 'quiz.validators.SpecialCharacterValidator',
+    },
+]
+
+# Custom messages
+LOGIN_ERROR_MESSAGE = 'Invalid username or password'
+ACCOUNT_LOCKED_MESSAGE = 'Too many login attempts. Please try again later.'
+PASSWORD_MISMATCH_MESSAGE = 'The two password fields did not match.'
+USERNAME_EXISTS_MESSAGE = 'This username already exists'
+EMAIL_NOT_REGISTERED_MESSAGE = 'This email address is not registered'
+COMMON_PASSWORD_MESSAGE = 'This password is too common'
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
@@ -102,29 +145,75 @@ SUPPORT_PHONE = '+1-555-123-4567'
 # Minnesota DMV Manual URL
 MN_DRIVERS_MANUAL_URL = 'https://dps.mn.gov/divisions/dvs/forms-documents/Documents/Minnesota_Drivers_Manual.pdf'
 
-# Help Page Settings
-QUIZ_FAQS = [
+# Help content configuration
+HELP_QUICK_START = [
     {
-        'question': 'What is the Minnesota DMV Practice Test?',
-        'answer': 'The Minnesota DMV Practice Test is a web application designed to help you prepare for your driver\'s permit test. It provides practice questions based on the official Minnesota Driver\'s Manual.'
+        'title': 'Creating an Account',
+        'description': 'Register with your email to start practicing.'
     },
     {
-        'question': 'How do I create an account?',
-        'answer': 'Click the "Register" button in the top right corner, fill out the registration form with your email and password, and click "Sign Up". You\'ll receive a confirmation email to activate your account.'
-    },
-    {
-        'question': 'How are practice tests scored?',
-        'answer': 'Practice tests are scored immediately after completion. You need to score 80% or higher to pass. Each question is worth one point, and you\'ll see detailed explanations for all answers.'
-    },
-    {
-        'question': 'Can I retake practice tests?',
-        'answer': 'Yes! You can take practice tests as many times as you want. Each attempt will have randomly selected questions to help you learn all the material.'
-    },
-    {
-        'question': 'How should I prepare for the test?',
-        'answer': 'Start by reading the Minnesota Driver\'s Manual, then take our practice tests to assess your knowledge. Review the explanations for any questions you miss and focus on those topics.'
+        'title': 'Taking a Quiz',
+        'description': 'Select a quiz and answer the questions.'
     }
 ]
+
+HELP_STUDY_MATERIALS = [
+    {
+        'title': 'Study Guides',
+        'description': 'Comprehensive study materials for each quiz topic.'
+    },
+    {
+        'title': 'Practice Questions',
+        'description': 'Sample questions to help you prepare for quizzes.'
+    }
+]
+
+HELP_STUDY_TIPS = [
+    {
+        'title': 'Review Regularly',
+        'description': 'Set aside time each day to practice.'
+    },
+    {
+        'title': 'Track Progress',
+        'description': 'Monitor your scores to identify areas for improvement.'
+    }
+]
+
+HELP_FAQS = [
+    {
+        'category': 'General',
+        'questions': [
+            {
+                'question': 'How many questions are in each quiz?',
+                'answer': 'Each quiz typically contains 20-25 questions.'
+            },
+            {
+                'question': 'How much time do I have?',
+                'answer': 'Most quizzes have a 30-minute time limit.'
+            }
+        ]
+    },
+    {
+        'category': 'Scoring',
+        'questions': [
+            {
+                'question': 'What is the passing score?',
+                'answer': 'You need to score 80% or higher to pass.'
+            },
+            {
+                'question': 'Can I retake a quiz?',
+                'answer': 'Yes, you can retake quizzes as many times as you want.'
+            }
+        ]
+    }
+]
+
+HELP_CONTACT_INFO = {
+    'email': 'support@example.com',
+    'phone': '1-800-555-0123',
+    'hours': 'Monday to Friday, 9 AM to 5 PM',
+    'support_url': '/help/contact'
+}
 
 # Cache settings
 CACHE_TIMEOUT = 300  # 5 minutes
@@ -139,3 +228,11 @@ CACHES = {
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
+
+# Test Settings
+from django.test.runner import DiscoverRunner
+
+class QuizTestRunner(DiscoverRunner):
+    """Custom test runner for the quiz app."""
+    def setup_test_environment(self, **kwargs):
+        super().setup_test_environment(**kwargs)

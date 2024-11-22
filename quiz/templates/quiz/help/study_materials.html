@@ -1,0 +1,56 @@
+{% extends "quiz/help/help_base.html" %}
+
+{% block help_description %}Minnesota DMV Practice Quiz - Study Materials and Resources{% endblock %}
+
+{% block help_title %}Study Materials{% endblock %}
+{% block page_title %}Study Materials{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'quiz:help' %}">Help Center</a></li>
+<li class="breadcrumb-item active" aria-current="page">Study Materials</li>
+{% endblock %}
+
+{% block help_content %}
+<div class="row">
+    {% for material in study_materials %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 responsive-card">
+            <div class="card-body">
+                <h2 class="h5 card-title">{{ material.title }}</h2>
+                <p class="card-text">{{ material.description }}</p>
+                <a href="{{ material.link }}" class="btn btn-primary stretched-link" target="_blank" rel="noopener">
+                    <i class="fas fa-book me-2"></i>View Material
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            No study materials available at the moment. Please check back later.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="mt-5">
+    <h2 class="h4 mb-4">Study Tips</h2>
+    {% for tip in study_tips %}
+    <div class="study-tip">
+        <h3 class="h6 mb-2">{{ tip.title }}</h3>
+        <p class="mb-0">{{ tip.description }}</p>
+    </div>
+    {% empty %}
+    <div class="alert alert-info">
+        No study tips available at the moment. Please check back later.
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Print-friendly version -->
+<div class="d-print-none text-end mt-4">
+    <button onclick="window.print()" class="btn btn-secondary">
+        <i class="fas fa-print me-2"></i>Print Study Materials
+    </button>
+</div>
+{% endblock %}

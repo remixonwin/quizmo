@@ -22,7 +22,7 @@ class QuizScoringTest(TestCase):
         self.quiz = Quiz.objects.create(
             title='Test Quiz',
             description='Test quiz description',
-            pass_mark=70.0
+            passing_score=70.0
         )
         
         # Create questions with different difficulties and points
@@ -100,7 +100,14 @@ class QuizScoringTest(TestCase):
             
         response = self.client.post(
             reverse('quiz:quiz_submit', args=[self.quiz.id]),
-            data=json.dumps({'answers': answers}),
+            data=json.dumps({
+                'answers': answers,
+                'metadata': {
+                    'submittedAt': timezone.now().isoformat(),
+                    'timeZone': 'UTC',
+                    'userAgent': 'Mozilla/5.0 (Test)'
+                }
+            }),
             content_type='application/json'
         )
         
@@ -135,7 +142,14 @@ class QuizScoringTest(TestCase):
             
         response = self.client.post(
             reverse('quiz:quiz_submit', args=[self.quiz.id]),
-            data=json.dumps({'answers': answers}),
+            data=json.dumps({
+                'answers': answers,
+                'metadata': {
+                    'submittedAt': timezone.now().isoformat(),
+                    'timeZone': 'UTC',
+                    'userAgent': 'Mozilla/5.0 (Test)'
+                }
+            }),
             content_type='application/json'
         )
         
@@ -167,7 +181,14 @@ class QuizScoringTest(TestCase):
             
         response = self.client.post(
             reverse('quiz:quiz_submit', args=[self.quiz.id]),
-            data=json.dumps({'answers': answers}),
+            data=json.dumps({
+                'answers': answers,
+                'metadata': {
+                    'submittedAt': timezone.now().isoformat(),
+                    'timeZone': 'UTC',
+                    'userAgent': 'Mozilla/5.0 (Test)'
+                }
+            }),
             content_type='application/json'
         )
         
@@ -198,7 +219,14 @@ class QuizScoringTest(TestCase):
         
         response = self.client.post(
             reverse('quiz:quiz_submit', args=[self.quiz.id]),
-            data=json.dumps({'answers': answers}),
+            data=json.dumps({
+                'answers': answers,
+                'metadata': {
+                    'submittedAt': timezone.now().isoformat(),
+                    'timeZone': 'UTC',
+                    'userAgent': 'Mozilla/5.0 (Test)'
+                }
+            }),
             content_type='application/json'
         )
         

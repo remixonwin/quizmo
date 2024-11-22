@@ -1,124 +1,142 @@
+"""
+Tests for quiz models.
+"""
 from django.test import TestCase
-from quiz.models import Quiz, Question, Choice
-from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
+from quiz.tests.base import QuizTestCase
+from quiz.models import Quiz, Question, Choice, QuizAttempt
 
-class QuizModelTests(TestCase):
-    def setUp(self):
-        """Set up test data"""
-        self.quiz = Quiz.objects.create(
-            title="Test Quiz",
-            description="A test quiz description"
-        )
-
-    def test_quiz_creation(self):
-        """Test quiz creation with valid data"""
-        self.assertEqual(self.quiz.title, "Test Quiz")
-        self.assertEqual(self.quiz.description, "A test quiz description")
-        self.assertTrue(self.quiz.created_at)
-
-    def test_quiz_str_representation(self):
-        """Test string representation of Quiz model"""
-        self.assertEqual(str(self.quiz), "Test Quiz")
+class QuizModelTests(QuizTestCase):
+    """Test quiz model."""
 
     def test_quiz_calculate_score(self):
         """Test quiz score calculation"""
-        # Create questions with choices
-        for i in range(40):
-            question = Question.objects.create(
-                quiz=self.quiz,
-                text=f"Question {i+1}"
+        # Create an attempt with 3 correct answers out of 5
+        attempt = self.create_quiz_attempt(correct_answers=3)
+        attempt.complete()
+        
+        # Verify score calculation
+        self.assertEqual(attempt.score, 60.0)  # 3/5 * 100 = 60%
+        self.assertTrue(attempt.time_taken > 0)
+
+    def test_quiz_passing_score(self):
+        """Test quiz passing score validation"""
+        # Test valid passing scores
+        valid_scores = [0.0, 50.0, 100.0]
+        for score in valid_scores:
+            quiz = Quiz.objects.create(
+                title=f'Quiz {score}',
+                passing_score=score
             )
-            # Create 4 choices per question, one correct
-            for j in range(4):
-                Choice.objects.create(
-                    question=question,
-                    text=f"Choice {j+1}",
-                    is_correct=(j == 0)  # First choice is correct
+            self.assertEqual(quiz.passing_score, score)
+
+        # Test invalid passing scores
+        invalid_scores = [-1.0, 101.0]
+        for score in invalid_scores:
+            with self.assertRaises(IntegrityError):
+                Quiz.objects.create(
+                    title=f'Quiz {score}',
+                    passing_score=score
                 )
 
-        score_data = self.quiz.calculate_score()
-        self.assertEqual(score_data['total_questions'], 40)
-        self.assertEqual(score_data['required_to_pass'], 32)
-        self.assertEqual(score_data['correct_answers'], 40)
-        self.assertEqual(score_data['score'], 100)
-        self.assertTrue(score_data['passed'])
+class QuestionModelTests(QuizTestCase):
+    """Test question model."""
 
-    def test_quiz_with_no_questions(self):
-        """Test quiz score calculation with no questions"""
-        score_data = self.quiz.calculate_score()
-        self.assertEqual(score_data['score'], 0)
-        self.assertFalse(score_data['passed'])
+    def test_question_order(self):
+        """Test question ordering"""
+        # Questions are already created in setUpTestData
+        # Verify they are in correct order
+        questions = Question.objects.filter(quiz=self.quiz).order_by('order')
+        for i, question in enumerate(questions):
+            self.assertEqual(question.order, i)
 
-class QuestionModelTests(TestCase):
-    def setUp(self):
-        """Set up test data"""
-        self.quiz = Quiz.objects.create(
-            title="Test Quiz",
-            description="Test Description"
-        )
-        self.question = Question.objects.create(
-            quiz=self.quiz,
-            text="Test Question"
-        )
-
-    def test_question_creation(self):
-        """Test question creation with valid data"""
-        self.assertEqual(self.question.text, "Test Question")
-        self.assertEqual(self.question.quiz, self.quiz)
-        self.assertTrue(self.question.created_at)
-
-    def test_question_str_representation(self):
-        """Test string representation of Question model"""
-        self.assertEqual(str(self.question), "Test Question")
-
-    def test_question_without_quiz(self):
-        """Test question creation without quiz"""
-        with self.assertRaises(IntegrityError):
-            Question.objects.create(text="Invalid Question")
-
-class ChoiceModelTests(TestCase):
-    def setUp(self):
-        """Set up test data"""
-        self.quiz = Quiz.objects.create(
-            title="Test Quiz",
-            description="Test Description"
-        )
-        self.question = Question.objects.create(
-            quiz=self.quiz,
-            text="Test Question"
-        )
-        self.choice = Choice.objects.create(
-            question=self.question,
-            text="Test Choice",
-            is_correct=True
-        )
-
-    def test_choice_creation(self):
-        """Test choice creation with valid data"""
-        self.assertEqual(self.choice.text, "Test Choice")
-        self.assertEqual(self.choice.question, self.question)
-        self.assertTrue(self.choice.is_correct)
-
-    def test_choice_str_representation(self):
-        """Test string representation of Choice model"""
-        self.assertEqual(str(self.choice), "Test Choice")
-
-    def test_multiple_correct_choices(self):
-        """Test validation prevents multiple correct choices for one question"""
-        # Create another correct choice
-        with self.assertRaises(ValidationError):
-            second_choice = Choice.objects.create(
-                question=self.question,
-                text="Second Choice",
-                is_correct=True
+    def test_question_points(self):
+        """Test question points validation"""
+        # Test valid points
+        valid_points = [1, 5, 10]
+        for points in valid_points:
+            question = Question.objects.create(
+                quiz=self.quiz,
+                text=f'Question worth {points} points',
+                points=points,
+                order=len(self.questions) + 1
             )
-            self.question.clean()  # This should raise ValidationError
+            self.assertEqual(question.points, points)
+
+        # Test invalid points
+        invalid_points = [-1, 0]
+        for points in invalid_points:
+            with self.assertRaises(IntegrityError):
+                Question.objects.create(
+                    quiz=self.quiz,
+                    text=f'Question worth {points} points',
+                    points=points,
+                    order=len(self.questions) + 1
+                )
+
+class ChoiceModelTests(QuizTestCase):
+    """Test choice model."""
 
     def test_choice_without_question(self):
         """Test choice creation without question"""
         with self.assertRaises(IntegrityError):
             Choice.objects.create(
                 text="Invalid Choice",
-                is_correct=True
+                is_correct=True,
+                order=0
             )
+
+    def test_choice_order(self):
+        """Test choice ordering"""
+        # Get first question's choices
+        question = self.questions[0]
+        choices = Choice.objects.filter(question=question).order_by('order')
+        
+        # Verify order
+        for i, choice in enumerate(choices):
+            self.assertEqual(choice.order, i)
+
+    def test_multiple_correct_choices(self):
+        """Test multiple correct choices validation"""
+        question = self.questions[0]
+        
+        # Try to create another correct choice
+        with self.assertRaises(IntegrityError):
+            Choice.objects.create(
+                question=question,
+                text="Another Correct Answer",
+                is_correct=True,
+                order=4
+            )
+
+class QuizAttemptModelTests(QuizTestCase):
+    """Test quiz attempt model."""
+
+    def test_attempt_score_calculation(self):
+        """Test attempt score calculation"""
+        # Create attempt with all correct answers
+        attempt = self.create_quiz_attempt(correct_answers=5)
+        attempt.complete()
+        
+        self.assertEqual(attempt.score, 100.0)
+        self.assertIsNotNone(attempt.completed_at)
+        self.assertTrue(attempt.time_taken > 0)
+
+    def test_attempt_partial_score(self):
+        """Test partial score calculation"""
+        # Create attempt with some correct answers
+        attempt = self.create_quiz_attempt(correct_answers=3)
+        attempt.complete()
+        
+        self.assertEqual(attempt.score, 60.0)  # 3/5 * 100
+        self.assertIsNotNone(attempt.completed_at)
+        self.assertTrue(attempt.time_taken > 0)
+
+    def test_attempt_no_answers(self):
+        """Test attempt with no answers"""
+        attempt = self.create_quiz_attempt(correct_answers=0)
+        attempt.complete()
+        
+        self.assertEqual(attempt.score, 0.0)
+        self.assertIsNotNone(attempt.completed_at)
+        self.assertTrue(attempt.time_taken > 0)

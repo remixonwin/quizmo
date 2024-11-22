@@ -1,0 +1,434 @@
+[
+  {
+    "model": "quiz.question",
+    "pk": 1,
+    "fields": {
+      "quiz": 1,
+      "text": "What does this road sign indicate?",
+      "explanation": "This sign warns drivers of a bicycle crossing ahead. Drivers should slow down and watch for cyclists crossing the road. This is particularly important in urban areas and near bike paths.",
+      "difficulty": "easy",
+      "points": 1.00,
+      "order": 1,
+      "is_active": true,
+      "image": "question_images/bicycle_crossing.jpg"
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 1,
+    "fields": {
+      "question": 1,
+      "text": "Bicycle crossing ahead",
+      "is_correct": true,
+      "order": 1
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 2,
+    "fields": {
+      "question": 1,
+      "text": "No bicycles allowed",
+      "is_correct": false,
+      "order": 2
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 3,
+    "fields": {
+      "question": 1,
+      "text": "Bicycle parking area",
+      "is_correct": false,
+      "order": 3
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 4,
+    "fields": {
+      "question": 1,
+      "text": "Bicycle lane ahead",
+      "is_correct": false,
+      "order": 4
+    }
+  },
+  {
+    "model": "quiz.question",
+    "pk": 2,
+    "fields": {
+      "quiz": 1,
+      "text": "When you see this sign, what should you do?",
+      "explanation": "This sign indicates a stop ahead. You must come to a complete stop at the white line (if present) or before entering the intersection, look for traffic in all directions, and proceed only when it's safe. Rolling stops are not legal and can result in a traffic violation.",
+      "difficulty": "easy",
+      "points": 1.00,
+      "order": 2,
+      "is_active": true,
+      "image": "question_images/stop_sign.jpg"
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 5,
+    "fields": {
+      "question": 2,
+      "text": "Come to a complete stop",
+      "is_correct": true,
+      "order": 1
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 6,
+    "fields": {
+      "question": 2,
+      "text": "Slow down but continue if clear",
+      "is_correct": false,
+      "order": 2
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 7,
+    "fields": {
+      "question": 2,
+      "text": "Yield to oncoming traffic only",
+      "is_correct": false,
+      "order": 3
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 8,
+    "fields": {
+      "question": 2,
+      "text": "Stop only if other vehicles are present",
+      "is_correct": false,
+      "order": 4
+    }
+  },
+  {
+    "model": "quiz.question",
+    "pk": 3,
+    "fields": {
+      "quiz": 1,
+      "text": "What does this yellow diamond-shaped sign warn you about?",
+      "explanation": "This sign warns of a sharp curve ahead. You should reduce your speed and stay in your lane while navigating the curve. The shape and color of this sign (yellow diamond) indicates it's a warning sign.",
+      "difficulty": "medium",
+      "points": 1.50,
+      "order": 3,
+      "is_active": true,
+      "image": "question_images/curve_ahead.jpg"
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 9,
+    "fields": {
+      "question": 3,
+      "text": "Sharp curve ahead",
+      "is_correct": true,
+      "order": 1
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 10,
+    "fields": {
+      "question": 3,
+      "text": "Turn right only",
+      "is_correct": false,
+      "order": 2
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 11,
+    "fields": {
+      "question": 3,
+      "text": "Right lane ends",
+      "is_correct": false,
+      "order": 3
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 12,
+    "fields": {
+      "question": 3,
+      "text": "Merge right",
+      "is_correct": false,
+      "order": 4
+    }
+  },
+  {
+    "model": "quiz.question",
+    "pk": 4,
+    "fields": {
+      "quiz": 1,
+      "text": "What does this sign indicate?",
+      "explanation": "This sign indicates that traffic must yield to other vehicles. While you don't need to come to a complete stop if the way is clear, you must be prepared to stop and yield the right-of-way to vehicles on the other road.",
+      "difficulty": "hard",
+      "points": 2.00,
+      "order": 4,
+      "is_active": true,
+      "image": "question_images/yield.jpg"
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 13,
+    "fields": {
+      "question": 4,
+      "text": "Yield to other traffic",
+      "is_correct": true,
+      "order": 1
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 14,
+    "fields": {
+      "question": 4,
+      "text": "Stop completely",
+      "is_correct": false,
+      "order": 2
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 15,
+    "fields": {
+      "question": 4,
+      "text": "Proceed with caution",
+      "is_correct": false,
+      "order": 3
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 16,
+    "fields": {
+      "question": 4,
+      "text": "Warning of intersection ahead",
+      "is_correct": false,
+      "order": 4
+    }
+  },
+  {
+    "model": "quiz.question",
+    "pk": 5,
+    "fields": {
+      "quiz": 1,
+      "text": "What does this sign indicate about traffic patterns?",
+      "explanation": "This sign indicates that traffic from another lane will be merging into your lane. You should be prepared to adjust your speed and position to allow other vehicles to merge safely.",
+      "difficulty": "hard",
+      "points": 2.00,
+      "order": 5,
+      "is_active": true,
+      "image": "question_images/merge.jpg"
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 17,
+    "fields": {
+      "question": 5,
+      "text": "Traffic merging from another lane",
+      "is_correct": true,
+      "order": 1
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 18,
+    "fields": {
+      "question": 5,
+      "text": "Two-way traffic ahead",
+      "is_correct": false,
+      "order": 2
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 19,
+    "fields": {
+      "question": 5,
+      "text": "Lane ends, move left",
+      "is_correct": false,
+      "order": 3
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 20,
+    "fields": {
+      "question": 5,
+      "text": "Divided highway begins",
+      "is_correct": false,
+      "order": 4
+    }
+  },
+  {
+    "model": "quiz.question",
+    "pk": 6,
+    "fields": {
+      "quiz": 1,
+      "text": "What does this sign indicate?",
+      "explanation": "This sign indicates that you must turn left at the intersection ahead. The black arrow on white background means this is a regulatory sign giving a mandatory instruction, not just a warning or guidance.",
+      "difficulty": "medium",
+      "points": 1.50,
+      "order": 6,
+      "is_active": true,
+      "image": "question_images/left_turn_only.jpg"
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 21,
+    "fields": {
+      "question": 6,
+      "text": "Left turn only ahead",
+      "is_correct": true,
+      "order": 1
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 22,
+    "fields": {
+      "question": 6,
+      "text": "Left curve ahead",
+      "is_correct": false,
+      "order": 2
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 23,
+    "fields": {
+      "question": 6,
+      "text": "Keep left",
+      "is_correct": false,
+      "order": 3
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 24,
+    "fields": {
+      "question": 6,
+      "text": "Left lane ends",
+      "is_correct": false,
+      "order": 4
+    }
+  },
+  {
+    "model": "quiz.question",
+    "pk": 7,
+    "fields": {
+      "quiz": 1,
+      "text": "What does this sign warn drivers about?",
+      "explanation": "This sign warns drivers that they are approaching a school zone. Drivers must reduce speed (typically 20 mph when children are present) and be especially alert for children crossing the street.",
+      "difficulty": "hard",
+      "points": 2.00,
+      "order": 7,
+      "is_active": true,
+      "image": "question_images/school_zone.jpg"
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 25,
+    "fields": {
+      "question": 7,
+      "text": "School zone ahead",
+      "is_correct": true,
+      "order": 1
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 26,
+    "fields": {
+      "question": 7,
+      "text": "Playground area",
+      "is_correct": false,
+      "order": 2
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 27,
+    "fields": {
+      "question": 7,
+      "text": "Pedestrian crossing",
+      "is_correct": false,
+      "order": 3
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 28,
+    "fields": {
+      "question": 7,
+      "text": "Children at play",
+      "is_correct": false,
+      "order": 4
+    }
+  },
+  {
+    "model": "quiz.question",
+    "pk": 8,
+    "fields": {
+      "quiz": 1,
+      "text": "What does this sign indicate about the road ahead?",
+      "explanation": "This sign indicates that traffic is moving in both directions. This typically appears at the end of a one-way street or divided highway, warning drivers to watch for oncoming traffic.",
+      "difficulty": "medium",
+      "points": 1.50,
+      "order": 8,
+      "is_active": true,
+      "image": "question_images/two_way_traffic.jpg"
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 29,
+    "fields": {
+      "question": 8,
+      "text": "Two-way traffic ahead",
+      "is_correct": true,
+      "order": 1
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 30,
+    "fields": {
+      "question": 8,
+      "text": "Divided highway ahead",
+      "is_correct": false,
+      "order": 2
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 31,
+    "fields": {
+      "question": 8,
+      "text": "One-way traffic only",
+      "is_correct": false,
+      "order": 3
+    }
+  },
+  {
+    "model": "quiz.choice",
+    "pk": 32,
+    "fields": {
+      "question": 8,
+      "text": "Lanes merge ahead",
+      "is_correct": false,
+      "order": 4
+    }
+  }
+]

@@ -11,6 +11,15 @@
                     <h2 class="h4 mb-0 text-center">Login</h2>
                 </div>
                 <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %} me-2"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
                     {% if form.errors %}
                         <div class="alert alert-danger">
                             <i class="fas fa-exclamation-circle me-2"></i>
@@ -18,11 +27,11 @@
                         </div>
                     {% endif %}
                     
-                    <form method="post" action="{% url 'login' %}">
+                    <form method="post" action="{% url 'quiz:login' %}">
                         {% csrf_token %}
                         
                         <div class="mb-3">
-                            <label for="id_username" class="form-label">Username</label>
+                            <label for="id_username" class="form-label">Username or Email</label>
                             <div class="input-group">
                                 <span class="input-group-text">
                                     <i class="fas fa-user"></i>
@@ -49,17 +58,20 @@
                         
                         <input type="hidden" name="next" value="{{ next }}">
                         
-                        <div class="d-grid">
+                        <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-sign-in-alt me-2"></i>Login
                             </button>
+                            <a href="{% url 'quiz:password_reset' %}" class="btn btn-link">
+                                Forgot your password?
+                            </a>
                         </div>
                     </form>
                     
                     <div class="text-center mt-4">
                         <p class="text-muted mb-0">
                             Don't have an account? 
-                            <a href="{% url 'register' %}" class="text-primary">Register here</a>
+                            <a href="{% url 'quiz:register' %}" class="text-primary">Register here</a>
                         </p>
                     </div>
                 </div>

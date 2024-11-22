@@ -1,128 +1,49 @@
 """
-High-level blockchain service combining Web3 and IPFS functionality.
+Service for handling user data storage using Django's cache system.
 """
-from typing import Dict, Any, Optional
-import logging
-from .web3_service import Web3Service
-from .ipfs_service import IPFSService
 from django.core.cache import cache
 
-logger = logging.getLogger(__name__)
-
 class BlockchainService:
-    """Service for high-level blockchain operations combining Web3 and IPFS."""
+    """
+    Service class that handles user data storage using Django's cache system.
+    This is a simplified version that replaces the previous blockchain/IPFS implementation.
+    """
     
-    def __init__(self):
-        """Initialize Web3 and IPFS services."""
-        self.web3 = Web3Service()
-        self.ipfs = IPFSService()
-    
-    def register_user(self, user_data: Dict[str, Any], private_key: str) -> Dict[str, Any]:
+    @staticmethod
+    def store_user_data(user_id: str, data: dict) -> bool:
         """
-        Register a user with data stored on IPFS and reference on blockchain.
+        Store user data in Django's cache.
         
         Args:
-            user_data: User data to store
-            private_key: User's private key
+            user_id (str): Unique identifier for the user
+            data (dict): User data to store
             
         Returns:
-            Transaction receipt
+            bool: True if storage was successful, False otherwise
         """
         try:
-            # Upload user data to IPFS
-            ipfs_hash = self.ipfs.upload_to_ipfs(user_data)
-            
-            # Register on blockchain
-            tx_receipt = self.web3.register_user(ipfs_hash, private_key)
-            
-            return tx_receipt
-            
+            cache_key = f"user_data_{user_id}"
+            cache.set(cache_key, data, timeout=None)  # No timeout, data persists until explicitly deleted
+            return True
         except Exception as e:
-            logger.error(f"Failed to register user: {str(e)}")
-            raise
+            print(f"Error storing user data: {str(e)}")
+            return False
 
-    def create_quiz(self, quiz_data: Dict[str, Any], private_key: str) -> Dict[str, Any]:
+    @staticmethod
+    def get_user_data(user_id: str) -> dict:
         """
-        Create a new quiz with data stored on IPFS and reference on blockchain.
+        Retrieve user data from Django's cache.
         
         Args:
-            quiz_data: Quiz data to store
-            private_key: Creator's private key
+            user_id (str): Unique identifier for the user
             
         Returns:
-            Transaction receipt
+            dict: User data if found, empty dict if not found
         """
         try:
-            # Upload quiz data to IPFS
-            ipfs_hash = self.ipfs.upload_to_ipfs(quiz_data)
-            
-            # Create on blockchain
-            tx_receipt = self.web3.create_quiz(ipfs_hash, private_key)
-            
-            return tx_receipt
-            
+            cache_key = f"user_data_{user_id}"
+            data = cache.get(cache_key)
+            return data if data else {}
         except Exception as e:
-            logger.error(f"Failed to create quiz: {str(e)}")
-            raise
-
-    def get_quiz(self, quiz_id: int) -> Optional[Dict[str, Any]]:
-        """
-        Get quiz data from blockchain and IPFS.
-        
-        Args:
-            quiz_id: ID of quiz to retrieve
-            
-        Returns:
-            Quiz data or None if not found
-        """
-        try:
-            # Get blockchain data
-            blockchain_data = self.web3.get_quiz(quiz_id)
-            if not blockchain_data:
-                return None
-            
-            # Get IPFS data
-            ipfs_data = self.ipfs.get_from_ipfs(blockchain_data['data'])
-            if not ipfs_data:
-                return None
-            
-            # Combine data
-            return {
-                **blockchain_data,
-                'data': ipfs_data
-            }
-            
-        except Exception as e:
-            logger.error(f"Failed to get quiz {quiz_id}: {str(e)}")
-            return None
-
-    def get_user_data(self, user_address: str) -> Optional[Dict[str, Any]]:
-        """
-        Get user data from blockchain and IPFS.
-        
-        Args:
-            user_address: Address of user to retrieve data for
-            
-        Returns:
-            User data or None if not found
-        """
-        try:
-            # Get blockchain data
-            blockchain_data = self.web3.get_user_data(user_address)
-            if not blockchain_data:
-                return None
-            
-            # Get IPFS data
-            ipfs_data = self.ipfs.get_from_ipfs(blockchain_data['data'])
-            if not ipfs_data:
-                return None
-            
-            # Combine data
-            return {
-                **blockchain_data,
-                'data': ipfs_data
-            }
-            
-        except Exception as e:
-            logger.error(f"Failed to get user data for {user_address}: {str(e)}")
-            return None
+            print(f"Error retrieving user data: {str(e)}")
+            return {}
