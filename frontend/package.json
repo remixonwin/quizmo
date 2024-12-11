@@ -10,6 +10,7 @@
     "typescript": "^5.7.2"
   },
   "scripts": {
-    "test:e2e": "jest"
+    "test:e2e": "jest",
+    "build": "webpack --mode production"
   }
 }
