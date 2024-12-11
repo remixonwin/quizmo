@@ -52,7 +52,29 @@ jobs:
         run: npm run build
         working-directory: ./frontend
 
+      - name: Start Backend Server
+        run: |
+          cargo run --release &
+          echo "Waiting for backend to start..."
+          sleep 10
+        working-directory: ./backend
+
+      - name: Serve Frontend
+        run: |
+          npm install -g serve
+          serve dist -p 3030 &
+          echo "Waiting for frontend to start..."
+          sleep 5
+        working-directory: ./frontend
+
+      - name: Health Check
+        run: |
+          curl --retry 5 --retry-delay 5 --retry-connrefused http://localhost:3030 || exit 1
+
       - name: Run Frontend Tests
         run: |
           npm run test:e2e
         working-directory: ./frontend
+        env:
+          CI: true
+          FRONTEND_URL: http://localhost:3030
