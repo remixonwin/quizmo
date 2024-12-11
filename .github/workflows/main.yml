@@ -62,7 +62,7 @@ jobs:
       - name: Serve Frontend
         run: |
           npm install -g serve
-          serve dist -p 3030 &
+          serve -s dist -p 3030 &
           echo "Waiting for frontend to start..."
           sleep 5
         working-directory: ./frontend
