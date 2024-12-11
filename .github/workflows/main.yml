@@ -44,12 +44,16 @@ jobs:
           cache: 'npm'
           cache-dependency-path: './frontend/package-lock.json'
 
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
       - name: Install Frontend Dependencies
         run: npm ci
         working-directory: ./frontend
 
       - name: Build Frontend
-        run: npm run build
+        run: |
+          wasm-pack build --target web --out-dir pkg
         working-directory: ./frontend
 
       - name: Start Backend Server
@@ -62,7 +66,7 @@ jobs:
       - name: Serve Frontend
         run: |
           npm install -g serve
-          serve -s dist -p 3030 &
+          serve pkg -p 3030 &  # Changed from dist to pkg since wasm-pack outputs to pkg
           echo "Waiting for frontend to start..."
           sleep 5
         working-directory: ./frontend
