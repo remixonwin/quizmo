@@ -1,5 +1,0 @@
-/target
-# Ignore Cargo.lock if necessary
-Cargo.lock
-# Ignore backup files
-*.rs.bk
