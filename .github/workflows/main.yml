@@ -21,7 +21,8 @@ jobs:
         working-directory: ./backend
 
       - name: Run Backend Tests
-        run: cargo test
+        run: |
+          cargo test --all-features --workspace
         working-directory: ./backend
 
       - name: Set up Node.js
@@ -38,5 +39,6 @@ jobs:
         working-directory: ./frontend
 
       - name: Run Frontend Tests
-        run: npm test
+        run: |
+          npm run test:e2e
         working-directory: ./frontend
