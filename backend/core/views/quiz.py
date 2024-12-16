@@ -24,12 +24,7 @@ class QuizViewSet(viewsets.ModelViewSet):
         return Response({'status': 'success'}, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
-        try:
-            serializer.save(author=self.request.user)
-        except serializers.ValidationError as e:
-            raise e
-        except Exception as e:
-            raise serializers.ValidationError({'error': str(e)})
+        serializer.save(author=self.request.user)
 
     def create(self, request, *args, **kwargs):
         try:
@@ -69,18 +64,8 @@ class QuizViewSet(viewsets.ModelViewSet):
         question_data = request.data.copy()
         question_data['quiz'] = quiz.id
 
-        serializer = QuestionSerializer(data=question_data, context={'request': request})
-        try:
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except serializers.ValidationError as e:
-            return Response(
-                {'error': 'Validation failed', 'details': e.detail},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        serializer = QuestionSerializer(data=question_data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

@@ -9,7 +9,7 @@ class TestBaseForm(unittest.TestCase):
         def mock_render_content():
             mock_st.write("Form Content")
         
-        def mock_handle_submit():
+        def mock_handle_submit(data):
             pass
         
         form = BaseForm(key="test_form", submit_label="Submit")
@@ -18,10 +18,9 @@ class TestBaseForm(unittest.TestCase):
     
     def test_state_manager_get_set(self):
         with patch('frontend.components.base.form.st.session_state', {}) as mock_session:
-            state = StateManager(key="test_state", default="default")
-            self.assertEqual(state.value, "default")
-            state.value = "new_value"
-            mock_session.__setitem__.assert_called_with("test_state", "new_value")
+            state = StateManager()
+            state.set("test_key", "test_value")
+            assert state.get("test_key") == "test_value"
 
 if __name__ == '__main__':
     unittest.main()

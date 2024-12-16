@@ -6,7 +6,6 @@ You've got a blank canvas to work on from a git perspective as well. There's a s
 
 Everything you do here is contained within this one codespace. There is no repository on GitHub yet. If and when you’re ready you can click "Publish Branch" and we’ll create your repository and push up your project. If you were just exploring then and have no further need for this code then you can simply delete your codespace and it's gone forever.
 
-<<<<<<< HEAD
 As an expert code reviewer, first summarize the changes and then analyze the git diff.
 
 Most importantly, understand that your role is to catch bugs, mistakes, and potential issues BEFORE the code is reviewed by the team. 
@@ -119,38 +118,28 @@ Format your response in markdown, with code examples where relevant using approp
 Using the provided context below, evaluate the changes while considering the existing codebase architecture and patterns:`
 
 
-=======
->>>>>>> 3816b9147ddde21dc0e547c9496d1e29b6ee68df
-## installing dependancies
+## Installation & Setup
 
+1. Install dependencies:
 ```python
 pip install -r requirements.txt
 ```
 
-## To collect static files:
-
+2. Collect static files:
 ```python
 python manage.py collectstatic
 ```
 
-## To run this application:
-
+3. Run the application:
 ```python
 python manage.py runserver
-<<<<<<< HEAD
-PYTHONPATH=/workspaces/codespaces-django streamlit run frontend/main.py
+streamlit run frontend/main.py
 ```
+
 ## For backend tests:
-python manage.py test backend.core.tests
-python manage.py test backend.core.tests.test_quiz -v 2
+
 
 ## For frontend tests:
-STREAMLIT_TEST_DEBUG=true PYTHONPATH=/workspaces/codespaces-django pytest frontend/test_integration.py
-STREAMLIT_TEST_DEBUG=true PYTHONPATH=/workspaces/codespaces-django pytest frontend/test_quiz.py -v
-STREAMLIT_TEST_DEBUG=true PYTHONPATH=/workspaces/codespaces-django DJANGO_ALLOW_ASYNC_UNSAFE=true pytest frontend/test_auth.py -v
+
 
 ## FOR UX test
-STREAMLIT_TEST_DEBUG=true PYTHONPATH=/workspaces/codespaces-django DJANGO_ALLOW_ASYNC_UNSAFE=true pytest frontend/test_playwright.py -v
-=======
-```
->>>>>>> 3816b9147ddde21dc0e547c9496d1e29b6ee68df

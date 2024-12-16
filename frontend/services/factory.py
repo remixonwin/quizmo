@@ -1,5 +1,5 @@
 from typing import Type, TypeVar, Dict
-from frontend.base import BaseService
+from frontend.base import BaseService  # Ensure this import is correct
 from functools import lru_cache
 
 T = TypeVar('T', bound=BaseService)

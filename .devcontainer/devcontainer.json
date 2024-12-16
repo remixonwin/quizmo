@@ -12,11 +12,7 @@
   "customizations": {
     "codespaces": {
       "openFiles": [
-<<<<<<< HEAD
         "backend/templates/index.html"
-=======
-        "hello_world/templates/index.html"
->>>>>>> 3816b9147ddde21dc0e547c9496d1e29b6ee68df
       ]
     },
     "vscode": {
@@ -25,7 +21,6 @@
       ]
     }
   },
-<<<<<<< HEAD
   "remoteEnv": {
     "STREAMLIT_BROWSER_GATHER_USAGE_STATS": "false",
     "STREAMLIT_ANALYTICS": "false",
@@ -55,13 +50,4 @@
     }
   },
   "forwardPorts": [8000, 8501]
-=======
-  "portsAttributes": {
-    "8000": {
-      "label": "Application",
-      "onAutoForward": "openPreview"
-    }
-  },
-  "forwardPorts": [8000]
->>>>>>> 3816b9147ddde21dc0e547c9496d1e29b6ee68df
 }

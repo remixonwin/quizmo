@@ -1,48 +1,53 @@
 import unittest
 
 from frontend.components.auth import LoginForm, RegisterForm, PasswordResetForm
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 class TestAuthForms(unittest.TestCase):
     
     @patch('frontend.components.auth.AuthService')
     def test_login_form_submit_success(self, mock_auth_service):
-        mock_auth_service.login.return_value = None  # Simulate successful login
+        mock_auth = Mock()
+        mock_auth.login.return_value = True
+        mock_auth_service.return_value = mock_auth
+        
         form = LoginForm()
         form.username = 'testuser'
         form.password = 'password'
         
-        with patch('streamlit.session_state') as mock_session:
+        with patch('streamlit.session_state', {}) as mock_session:
             form.handle_submit()
-            mock_auth_service.login.assert_called_once_with('testuser', 'password')
-            mock_session['token'] = 'dummy_token'
-            mock_session['username'] = 'testuser'
+            mock_auth.login.assert_called_once_with('testuser', 'password')
     
     @patch('frontend.components.auth.AuthService')
     def test_register_form_submit_success(self, mock_auth_service):
-        mock_auth_service.register.return_value = None  # Simulate successful registration
-        form = RegisterForm()
-        form.username = 'newuser'
-        form.email = 'newuser@example.com'
-        form.password = 'password'
-        form.confirm_password = 'password'
+        mock_instance = mock_auth_service.return_value
+        mock_instance.register.return_value = True
         
-        with patch('streamlit.session_state') as mock_session:
+        form = RegisterForm()
+        form.username = 'testuser'
+        form.email = 'test@example.com'
+        form.password = 'password123'
+        form.confirm_password = 'password123'
+        
+        with patch('streamlit.session_state', {}) as mock_session:
             form.handle_submit()
-            mock_auth_service.register.assert_called_once_with('newuser', 'newuser@example.com', 'password')
-            mock_session['token'] = 'new_dummy_token'
-            mock_session['username'] = 'newuser'
+            mock_instance.register.assert_called_once_with(
+                'testuser', 
+                'test@example.com',
+                'password123'
+            )
     
     @patch('frontend.components.auth.AuthService')
     def test_password_reset_form_submit_success(self, mock_auth_service):
-        mock_auth_service.request_password_reset.return_value = (True, "Password reset email sent")
+        mock_instance = mock_auth_service.return_value
+        mock_instance.request_password_reset.return_value = (True, "Password reset email sent")
         form = PasswordResetForm()
         form.email = 'user@example.com'
         
-        with patch('streamlit.session_state') as mock_session:
+        with patch('streamlit.session_state', {}) as mock_session:
             form.handle_submit()
-            mock_auth_service.request_password_reset.assert_called_once_with('user@example.com')
-            # Add assertions for success message if applicable
+            mock_instance.request_password_reset.assert_called_once_with('user@example.com')
 
 if __name__ == '__main__':
     unittest.main()

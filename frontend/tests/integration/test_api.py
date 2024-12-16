@@ -21,7 +21,7 @@ class TestAPIClientIntegration(unittest.TestCase):
 
     @patch('frontend.services.api.requests.post')
     def test_post_request_success(self, mock_post):
-        mock_post.return_value = Mock(status_code=201, json=lambda: self.test_data)
+        mock_post.return_value = Mock(status_code=201, json=lambda: self.test_data, cookies={})
         response = self.api.post(
             self.test_endpoint, 
             data=self.test_data, 

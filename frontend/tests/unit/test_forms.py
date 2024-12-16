@@ -7,15 +7,17 @@ class TestForms(unittest.TestCase):
     
     @patch('frontend.components.auth.AuthService')
     def test_login_form_validation(self, mock_auth_service):
+        mock_instance = mock_auth_service.return_value
+        mock_instance.login.return_value = True
         form = LoginForm()
         form.username = 'user'
         form.password = 'pass'
         
-        with patch('streamlit.session_state') as mock_session:
+        with patch('streamlit.session_state', {}) as mock_session:
             form.handle_submit()
-            mock_auth_service.login.assert_called_with('user', 'pass')
-            mock_session.__setitem__.assert_any_call('token', 'dummy_token')
-            mock_session.__setitem__.assert_any_call('username', 'user')
+            mock_instance.login.assert_called_once_with('user', 'pass')
+            self.assertEqual(mock_session['token'], 'dummy_token')
+            self.assertEqual(mock_session['username'], 'user')
     
     @patch('frontend.components.auth.AuthService')
     def test_register_form_password_mismatch(self, mock_auth_service):

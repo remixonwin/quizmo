@@ -3,49 +3,59 @@ from frontend.services.api import APIClient
 from typing import List, Dict
 import base64
 
-def handle_image_upload(question_number) -> str:
-    """Handle image upload and convert to base64"""
-    uploaded_file = st.file_uploader("Upload Image (optional)", 
-                                    type=['png', 'jpg', 'jpeg'],
-                                    key=f"image_upload_{question_number}")
-    if uploaded_file is not None:
-        bytes_data = uploaded_file.getvalue()
-        return base64.b64encode(bytes_data).decode()
-    return None
+def handle_image_upload(index):
+    uploaded_file = st.file_uploader(f"Image for question {index}", key=f"q{index}_image")
+    if not uploaded_file:
+        return None
+    
+    try:
+        file_bytes = uploaded_file.getvalue()
+        encoded = base64.b64encode(file_bytes)
+        return encoded.decode('utf-8')  # Ensure we return the decoded string
+    except Exception as e:
+        st.error(f"Error processing image: {str(e)}")
+        return None
 
-def create_question_form(index: int) -> Dict:
-    """Create a form for a single question"""
-    with st.expander(f"Question {index + 1}", expanded=True):
-        question_text = st.text_area(f"Question Text", key=f"q{index}_text")
-        points = st.number_input(f"Points", min_value=1, value=1, key=f"q{index}_points")
-        image = handle_image_upload(index)
+def create_question_form(index):
+    # Get question text
+    question_text = st.text_area(f"Question {index + 1}", key=f"q{index}_text")
+    if not question_text:
+        return None
         
-        choices = []
-        st.write("Choices (minimum 2, at least 1 correct)")
-        for i in range(4):  # Allow up to 4 choices
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                choice_text = st.text_input(
-                    f"Choice {i+1}", 
-                    key=f"q{index}_c{i}_text"
-                )
-            with col2:
-                is_correct = st.checkbox(
-                    "Correct", 
-                    key=f"q{index}_c{i}_correct"
-                )
-            if choice_text:
-                choices.append({
-                    'text': choice_text,
-                    'is_correct': is_correct
-                })
-
+    # Get points
+    points = st.number_input(
+        "Points",
+        min_value=1,
+        max_value=10,
+        value=1,
+        key=f"q{index}_points"
+    )
+    
+    # Get number of choices
+    num_choices = st.number_input(
+        "Number of Choices",
+        min_value=2,
+        max_value=5,
+        value=2,
+        key=f"q{index}_num_choices"
+    )
+    
+    # Collect choices
+    choices = []
+    for i in range(int(num_choices)):
+        choice_text = st.text_input(f"Choice {i+1}", key=f"q{index}_choice_{i}")
+        is_correct = st.checkbox(f"Is Correct Answer", key=f"q{index}_correct_{i}")
+        if choice_text:
+            choices.append({"text": choice_text, "is_correct": is_correct})
+    
+    # Only return if we have valid data
+    if question_text and len(choices) >= 2:
         return {
-            'text': question_text,
-            'points': points,
-            'image': image,
-            'choices': choices
-        } if question_text and len(choices) >= 2 else None
+            "text": question_text,
+            "points": points,
+            "choices": choices
+        }
+    return None
 
 def quiz_list():
     st.header("My Quizzes")

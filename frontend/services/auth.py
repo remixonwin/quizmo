@@ -36,3 +36,21 @@ class AuthService:
         return {
             "Authorization": f"Token {st.session_state.token}"
         }
+
+    def register(self, username, email, password):
+        try:
+            response = requests.post(
+                f"{self.base_url}/register/",
+                json={
+                    "username": username,
+                    "email": email, 
+                    "password": password
+                }
+            )
+            if response.status_code == 201:
+                st.session_state['token'] = response.json()['token']
+                st.session_state['username'] = username
+                return True
+            return False
+        except:
+            return False

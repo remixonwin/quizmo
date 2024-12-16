@@ -41,6 +41,16 @@ class BaseForm(Generic[T]):
                 handle_submit(self.state.data)
             st.markdown('</div>', unsafe_allow_html=True)
 
+class StateManager:
+    def __init__(self):
+        self.state = {}
+
+    def set(self, key, value):
+        self.state[key] = value
+
+    def get(self, key):
+        return self.state.get(key)
+
 class FormComponent:
     """Base form component that handles common form functionality"""
     

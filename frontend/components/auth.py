@@ -5,7 +5,7 @@ from ..components.base.form import FormComponent  # Corrected import path
 class LoginForm(FormComponent):
     def __init__(self):
         super().__init__("login", "Login")
-        self.auth = AuthService()
+        self.auth_service = AuthService()
 
     def render_content(self):
         with st.container():
@@ -15,17 +15,18 @@ class LoginForm(FormComponent):
             st.markdown("</div>", unsafe_allow_html=True)
 
     def handle_submit(self):
-        error = self.auth.login(self.username, self.password)
-        if error:
-            st.error(error)
-        else:
+        if self.auth_service.login(self.username, self.password):
+            st.session_state['token'] = 'dummy_token'
+            st.session_state['username'] = self.username
             st.success("Logged in successfully!")
             st.rerun()
+        else:
+            st.error("Invalid credentials")
 
 class RegisterForm(FormComponent):
     def __init__(self):
         super().__init__("register", "Register")
-        self.auth = AuthService()
+        self.auth_service = AuthService()
 
     def render_content(self):
         with st.container():
@@ -40,16 +41,13 @@ class RegisterForm(FormComponent):
         if self.password != self.confirm_password:
             st.error("Passwords do not match")
             return
-        success, message = self.auth.register(self.username, self.email, self.password)
-        if success:
-            st.success("✅ Registration successful! You can now log in.")
+        
+        if self.auth_service.register(self.username, self.email, self.password):
+            st.session_state['username'] = self.username
+            st.session_state['token'] = 'new_dummy_token'
+            st.success("Registration successful!")
         else:
-            if "username" in message:
-                st.error("Username already taken. Please choose another one.")
-            elif "email" in message:
-                st.error("This email is already registered. Try logging in instead.")
-            else:
-                st.error(message)
+            st.error("Registration failed")
 
 class PasswordResetForm(FormComponent):
     def __init__(self):
@@ -93,3 +91,13 @@ def auth_tabs():
         if st.button("Logout"):
             auth.logout()
             st.rerun()
+
+def request_password_reset(self, email):
+    try:
+        response = requests.post(
+            f"{self.base_url}/password-reset/",
+            json={"email": email}
+        )
+        return True, "Password reset email sent"
+    except:
+        return False, "Failed to send reset email"

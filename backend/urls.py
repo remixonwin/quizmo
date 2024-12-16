@@ -21,10 +21,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 
-from backend.core.views import (
+from backend.core.api.views.auth import (
     RegisterView, ValidateTokenView, PasswordResetView,
-    ResetPasswordView, CustomAuthToken, QuizViewSet, index
+    ResetPasswordView, CustomAuthToken
 )
+from backend.core.api.views.quiz import QuizViewSet
+from backend.core.views import index
 
 router = DefaultRouter()
 router.register(r'quizzes', QuizViewSet, basename='quiz')
@@ -34,10 +36,10 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include(router.urls)),
     path('api/register/', RegisterView.as_view(), name='register'),
-    path('api/token/', CustomAuthToken.as_view(), name='token_obtain'),
-    path('api/validate-token/', ValidateTokenView.as_view(), name='validate_token'),
-    path('api/password-reset/', PasswordResetView.as_view(), name='password_reset'),
-    path('api/password-reset/confirm/', ResetPasswordView.as_view(), name='password_reset_confirm'),
+    path('api/token/', CustomAuthToken.as_view(), name='token'),
+    path('api/validate-token/', ValidateTokenView.as_view(), name='validate-token'),
+    path('api/password-reset/', PasswordResetView.as_view(), name='password-reset'),
+    path('api/reset-password/', ResetPasswordView.as_view(), name='reset-password'),
     path("__reload__/", include("django_browser_reload.urls")),
     path('api-auth/', include('rest_framework.urls')),
 ]

@@ -1,9 +1,14 @@
+import os
+import sys
+
+# Add the project root to Python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import streamlit as st
 from frontend.components.auth import auth_tabs
-from frontend.components.quiz import quiz_list, quiz_create_form 
+# Update import to use correct module path
+from frontend.components.quiz.quiz import quiz_list, quiz_create_form
 from frontend.services.auth import AuthService
-import subprocess
-import os
 
 def check_backend():
     """Check if Django backend is running"""

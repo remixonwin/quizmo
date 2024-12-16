@@ -1,10 +1,10 @@
-from .test_cases.test_quiz import (
+from .test_quiz import (
     QuizCreateTestCase,
     QuizAccessTestCase, 
     QuizUpdateTestCase,
     QuizQuestionTestCase,
 )
-from .test_cases.test_auth import AuthTestCase
+from .test_auth import AuthTestCase
 
 __all__ = [
     'QuizCreateTestCase',
@@ -13,5 +13,3 @@ __all__ = [
     'QuizQuestionTestCase',
     'AuthTestCase'
 ]
-
-# ...existing code...

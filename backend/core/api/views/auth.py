@@ -1,4 +1,3 @@
-
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -46,20 +45,18 @@ class RegisterView(APIView):
 class ValidateTokenView(APIView):
     """Token validation view"""
     
+    permission_classes = []  # Allow any user to access this view
+
     def post(self, request):
-        token = request.data.get('token')
-        if not token:
-            return Response({'error': 'Token is required'}, 
-                          status=status.HTTP_400_BAD_REQUEST)
+        token_key = request.data.get('token')
+        if not token_key:
+            return Response({'valid': False, 'error': 'Token is required.'}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            token_obj = Token.objects.get(key=token)
-            return Response({
-                'valid': True,
-                'user': UserSerializer(token_obj.user).data
-            })
+            token = Token.objects.get(key=token_key)
+            return Response({'valid': True, 'user_id': token.user_id}, status=status.HTTP_200_OK)
         except Token.DoesNotExist:
-            return Response({'valid': False}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'valid': False, 'error': 'Invalid token.'}, status=status.HTTP_401_UNAUTHORIZED)
 
 class PasswordResetView(APIView):
     """Password reset request view"""
