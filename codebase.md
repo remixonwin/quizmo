@@ -1,0 +1,201 @@
+# Project Documentation
+Generated at Mon Dec 16 03:17:08 UTC 2024
+
+## Project Structure
+```
+.
+├── .devcontainer
+│   ├── codespaces-django.code-workspace
+│   ├── devcontainer.json
+│   └── icon.svg
+├── .git
+│   ├── COMMIT_EDITMSG
+│   ├── FETCH_HEAD
+│   ├── HEAD
+│   ├── branches
+│   ├── config
+│   ├── description
+│   ├── hooks
+│   │   ├── applypatch-msg.sample
+│   │   ├── commit-msg.sample
+│   │   ├── fsmonitor-watchman.sample
+│   │   ├── post-update.sample
+│   │   ├── pre-applypatch.sample
+│   │   ├── pre-commit.sample
+│   │   ├── pre-merge-commit.sample
+│   │   ├── pre-push.sample
+│   │   ├── pre-rebase.sample
+│   │   ├── pre-receive.sample
+│   │   ├── prepare-commit-msg.sample
+│   │   ├── push-to-checkout.sample
+│   │   ├── sendemail-validate.sample
+│   │   └── update.sample
+│   ├── index
+│   ├── index.lock
+│   ├── info
+│   │   └── exclude
+│   ├── lfs
+│   │   └── tmp
+│   ├── logs
+│   │   ├── HEAD
+│   │   └── refs
+│   │       └── heads
+│   │           └── main
+│   ├── objects
+│   │   ├── 03
+│   │   │   └── 15cb6fa634eee2ef0f227e9b7e3effdaa89890
+│   │   ├── 06
+│   │   │   └── ce7652a7012242f1292092adb8630e0cc5c92f
+│   │   ├── 10
+│   │   │   └── 82523eb655b92ee2b5990f3d3f22ea46fa1252
+│   │   ├── 19
+│   │   │   └── 17e46e5a9417d34d1131e11fcba9665feb978e
+│   │   ├── 2a
+│   │   │   └── 0ed79b2fced3919ff6643d336e4b219978adf7
+│   │   ├── 59
+│   │   │   └── 50d4f02f137e99d27b92e25a7484a94d23591f
+│   │   ├── 5f
+│   │   │   └── 49d3b3560a887b091f4b5c2f6771f9fc578694
+│   │   ├── 65
+│   │   │   ├── 43b723fb4ed4e969ce7ea949fa2a64cf23e829
+│   │   │   └── c24c0e3ed1413e5aca124e0b70f85ae0415b0b
+│   │   ├── 66
+│   │   │   └── ea71b54b0d2615f9575c4249cc7ae6c7ade595
+│   │   ├── 71
+│   │   │   └── ea6a0c420960898d57abaf456129f459efa8de
+│   │   ├── 75
+│   │   │   └── f09e94c9aada34f0c4e26e38ca6d3c2ff4705e
+│   │   ├── 7c
+│   │   │   ├── 76859f6efd3f4e5e6a12eaecac45cb09f4ef4f
+│   │   │   └── f22ae5e9ddb33d828522c79743ce8db1fbe8b8
+│   │   ├── 8f
+│   │   │   └── 85457b6fa3df41211b8bb1077bf99fa47dcd83
+│   │   ├── 91
+│   │   │   └── a758045ce938874389a89c36a99e09a5f4c44f
+│   │   ├── 92
+│   │   │   └── 639b04863d2c050a1a526dd836d71cf67fbba9
+│   │   ├── 99
+│   │   │   └── b67c2eafcb51a41ab952a8f4883305218ce1a5
+│   │   ├── 9d
+│   │   │   └── 42f42c32cf447237f9636275f685d5d49e11a4
+│   │   ├── a3
+│   │   │   └── 16a018c69750a89e4319917a15620ba84d3fb4
+│   │   ├── a7
+│   │   │   └── 8c08539dbd86da6067e438a85f62e8cf72f7c2
+│   │   ├── a8
+│   │   │   ├── 4804330abd2278e73bfe6c19cc4d3740c9e651
+│   │   │   └── daeed3055328b0b796998eac1aa94417c6d0cc
+│   │   ├── ab
+│   │   │   └── 32089ac86da0dd3449b1f2afd44bea15630518
+│   │   ├── ad
+│   │   │   └── 8a51a318fac7ed7bf1adbb568f08f0763354a3
+│   │   ├── b5
+│   │   │   └── 7adc643341a25b48b27c185c6d34065b83934d
+│   │   ├── bd
+│   │   │   └── 3d18bdf68d5c71f9d82f474432e2a5510eb0e5
+│   │   ├── c0
+│   │   │   └── e1eedbc8dc4f31fb516073935a2e683237592b
+│   │   ├── ca
+│   │   │   └── 3c80a7f3e7e3c56cb5d5ecf1d7ca2ef0894ab9
+│   │   ├── ce
+│   │   │   └── a9709871d6ebef9e82ed55079d2ff04ce32f26
+│   │   ├── d1
+│   │   │   └── dcfd0cc172b9baa20b3e5be3d1b4d7fccb1e7d
+│   │   ├── d3
+│   │   │   ├── 638534845d08ff1beacede90db4c05c9264140
+│   │   │   └── 6e32609973f568ec5918457d3508482fd8c3f7
+│   │   ├── d7
+│   │   │   └── 6e03f46fc325877cfefaad6e0fec53e8b8dfd9
+│   │   ├── db
+│   │   │   └── d144b16e3d4b9c5637f25d8d524c4eb95c3a7d
+│   │   ├── df
+│   │   │   └── 6882d39f2098157216e6b8b562e69dadec9fc6
+│   │   ├── e1
+│   │   │   └── e6dafff5dfdb915a14dea16805907368322a94
+│   │   ├── e6
+│   │   │   └── 9de29bb2d1d6434b8b29ae775ad8c2e48c5391
+│   │   ├── e7
+│   │   │   └── 2990a6b6ded1d5e5f6a3fdd6908a422afbb286
+│   │   ├── fb
+│   │   │   └── 992a755abfffb702f3d752df8c1998d607a7f2
+│   │   ├── fc
+│   │   │   └── a77104e737bf2f3699048eb119134d36cf4f42
+│   │   ├── ff
+│   │   │   └── 75c7a9ed617364a54685783325b93f2ea66adf
+│   │   ├── info
+│   │   └── pack
+│   └── refs
+│       ├── heads
+│       │   └── main
+│       └── tags
+├── .gitattributes
+├── .gitignore
+├── .pytest_cache
+│   ├── .gitignore
+│   ├── CACHEDIR.TAG
+│   ├── README.md
+│   └── v
+│       └── cache
+│           ├── lastfailed
+│           ├── nodeids
+│           └── stepwise
+├── .streamlit
+│   └── auth.json
+├── Dockerfile
+├── README.md
+├── __pycache__
+│   └── conftest.cpython-312-pytest-7.4.4.pyc
+├── backend
+│   ├── asgi.py
+│   ├── core
+│   │   ├── admin.py
+│   │   ├── api
+│   │   │   ├── serializers
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── auth.py
+│   │   │   │   └── quiz.py
+│   │   │   └── views
+│   │   ├── apps.py
+│   │   ├── management
+│   │   │   └── commands
+│   │   ├── migrations
+│   │   ├── models
+│   │   │   ├── __init__.py
+│   │   │   ├── quiz.py
+│   │   │   └── user.py
+│   │   ├── models.py
+│   │   ├── serializers.py
+│   │   ├── settings.py
+│   │   ├── signals.py
+│   │   ├── tests
+│   │   │   ├── __init__.py
+│   │   │   ├── base.py
+│   │   │   └── test_quiz.py
+│   │   ├── utils
+│   │   │   ├── decorators.py
+│   │   │   └── exceptions.py
+│   │   ├── utils.py
+│   │   ├── views
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py
+│   │   │   ├── index.py
+│   │   │   ├── quiz.py
+│   │   │   └── utils.py
+│   │   └── views.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── codebase.md
+├── conftest.py
+├── db.sqlite3
+├── frontend
+│   ├── .streamlit
+│   │   ├── .gitkeep
+│   │   ├── auth.json
+│   │   └── config.toml
+│   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-312.pyc
+│   │   ├── auth.cpython-312.pyc
+│   │   ├── main.cpython-312.pyc
+│   │   ├── test_auth.cpython-312-pytest-7.4.

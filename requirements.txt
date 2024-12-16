@@ -1,5 +1,14 @@
-asgiref~=3.8.1
+asgiref>=3.8.1  # Update to ensure correct version
 Django~=5.0.8
 django-browser-reload~=1.13.0
 python-decouple~=3.8
 sqlparse~=0.5.1
+streamlit~=1.41.1
+pytest~=7.4.0  # Downgrade to version compatible with pytest-playwright
+pytest-django~=4.8.0
+requests-mock~=1.11.0
+djangorestframework~=3.14.0
+pytest-playwright==0.4.3
+pytest-asyncio==0.23.5
+# Flask~=2.3.2  # Removed
+# python-dotenv~=1.0.0  # Removed
