@@ -1,4 +1,15 @@
-from .index import index
 from .quiz import QuizViewSet
-from .auth import RegisterView, ValidateTokenView, PasswordResetView, ResetPasswordView, CustomAuthToken
-from .utils import retry_on_error, flush_duplicate_users
+from .auth import (
+    RegisterView, ValidateTokenView, PasswordResetView, 
+    ResetPasswordView, CustomAuthToken, index
+)
+
+__all__ = [
+    'index',
+    'RegisterView', 
+    'ValidateTokenView', 
+    'PasswordResetView', 
+    'ResetPasswordView',
+    'CustomAuthToken', 
+    'QuizViewSet'
+]

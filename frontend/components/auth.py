@@ -1,6 +1,6 @@
 import streamlit as st
 from ..services.auth import AuthService
-from .base import FormComponent
+from ..components.base.form import FormComponent  # Corrected import path
 
 class LoginForm(FormComponent):
     def __init__(self):

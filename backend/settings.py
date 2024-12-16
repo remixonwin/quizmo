@@ -56,7 +56,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
+    # "django.middleware.common.CommonMiddleware",  # Removed duplicate
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -173,6 +173,10 @@ CORS_EXPOSE_HEADERS = ["Set-Cookie"]
 # Add the following lines to restrict allowed methods
 CORS_ALLOW_METHODS = [
     "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
     "OPTIONS",
 ]
 
@@ -200,9 +204,9 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_THROTTLE_RATES': {
         'password_reset': '3/minute',
-        # ...existing throttle rates...
+        # 'another_throttle': '5/hour',  # Removed unused throttle rate
     },
-    'EXCEPTION_HANDLER': 'backend.core.utils.custom_exception_handler',  # Add this line
+    'EXCEPTION_HANDLER': 'backend.core.utils.custom_exception_handler',
     # ...existing settings...
 }
 
