@@ -1,5 +1,5 @@
 # Project Documentation
-Generated at Mon Dec 16 05:00:25 UTC 2024
+Generated at Mon Dec 16 05:06:35 UTC 2024
 
 ## Project Structure
 ```
@@ -9,9 +9,13 @@ Generated at Mon Dec 16 05:00:25 UTC 2024
 │   ├── devcontainer.json
 │   └── icon.svg
 ├── .git
+│   ├── AUTO_MERGE
 │   ├── COMMIT_EDITMSG
 │   ├── FETCH_HEAD
 │   ├── HEAD
+│   ├── MERGE_HEAD
+│   ├── MERGE_MODE
+│   ├── MERGE_MSG
 │   ├── ORIG_HEAD
 │   ├── branches
 │   ├── config
@@ -42,9 +46,9 @@ Generated at Mon Dec 16 05:00:25 UTC 2024
 │   │       ├── heads
 │   │       │   └── main
 │   │       └── remotes
-│   │           └── origin
-│   │               └── main
 │   ├── objects
+│   │   ├── 01
+│   │   │   └── 76d433493e3730e03d3ab7230188cd71f7b975
 │   │   ├── 03
 │   │   │   └── 15cb6fa634eee2ef0f227e9b7e3effdaa89890
 │   │   ├── 06
@@ -60,11 +64,13 @@ Generated at Mon Dec 16 05:00:25 UTC 2024
 │   │   ├── 0e
 │   │   │   └── 2622418ca1308354302289483af8346ea0cb72
 │   │   ├── 10
-│   │   │   └── 82523eb655b92ee2b5990f3d3f22ea46fa1252
+│   │   │   ├── 82523eb655b92ee2b5990f3d3f22ea46fa1252
+│   │   │   └── dcf73af6653aed63b82d263c32889f89eef8f5
 │   │   ├── 11
 │   │   │   └── 57b39c3f696abc61622d9dabf3944c67dfa56f
 │   │   ├── 13
-│   │   │   └── 0ecba60113da50f43d38005dd95326973cd9dd
+│   │   │   ├── 0ecba60113da50f43d38005dd95326973cd9dd
+│   │   │   └── ccfd605b19bea0b6c5a2efeff87a253c5c54ef
 │   │   ├── 16
 │   │   │   ├── 23bb9752294e6a4c2683980eb56e05046d8beb
 │   │   │   ├── 24ce50e5cdd8e59df22347c0876deab63e5996
@@ -93,6 +99,8 @@ Generated at Mon Dec 16 05:00:25 UTC 2024
 │   │   │   └── 20b51cbc13ebb7c206fbf1d94cda162f7ea29d
 │   │   ├── 34
 │   │   │   └── eb8102153befd7beeb527fa46d4464d9f6a37a
+│   │   ├── 35
+│   │   │   └── 3a7b0ed06cbb799d4ab22304ef4bd47ef7a2ce
 │   │   ├── 36
 │   │   │   ├── 7dde21e6d17dea213359e376b5f7e9e5a778f0
 │   │   │   └── f0804eda499b65a78acb2f47fcba274ded04ff
@@ -126,6 +134,8 @@ Generated at Mon Dec 16 05:00:25 UTC 2024
 │   │   │   └── 3683e2df93a70bcc34a312678b178a4bdbe176
 │   │   ├── 59
 │   │   │   └── 50d4f02f137e99d27b92e25a7484a94d23591f
+│   │   ├── 5a
+│   │   │   └── ea6f11f710674cf6c7c3dd66397311bfde1d68
 │   │   ├── 5c
 │   │   │   ├── e4734553583535f19f54849e3df0d8666a0f47
 │   │   │   └── f32317d6255f5a916eee06d78b25ef8bd9882a
@@ -143,6 +153,8 @@ Generated at Mon Dec 16 05:00:25 UTC 2024
 │   │   │   ├── 878794f3920357dcb0fa19788204b43f54e18f
 │   │   │   ├── 8b844f435c4807b1fdafa88bc8649f62f12898
 │   │   │   └── 9997869350fd973e8f20b19668243a59165de6
+│   │   ├── 6d
+│   │   │   └── d36e6833fb872ae11cd9f434e0eb3c02ce9264
 │   │   ├── 6e
 │   │   │   └── 54d759c201556b0105511a424ad3187e62bd0e
 │   │   ├── 6f
@@ -154,6 +166,8 @@ Generated at Mon Dec 16 05:00:25 UTC 2024
 │   │   ├── 76
 │   │   │   ├── 1dadb3ac1b9ebae2be33ef3fe1506e771a1bc1
 │   │   │   └── e8e11e3e3b7fede5eab8f0c6f319b301f27c16
+│   │   ├── 77
+│   │   │   └── e4c0bb95949d955b1c267c78191386299c2533
 │   │   ├── 78
 │   │   │   └── c1c37e3048cf544234ad32b7a485704e094d80
 │   │   ├── 7a
@@ -163,10 +177,16 @@ Generated at Mon Dec 16 05:00:25 UTC 2024
 │   │   │   └── f22ae5e9ddb33d828522c79743ce8db1fbe8b8
 │   │   ├── 7d
 │   │   │   └── f674351a5f50ebb5ea8e97f6b3461fa10836de
+│   │   ├── 7e
+│   │   │   └── 88815d0955045098642eca735d21ca16d0b4d0
 │   │   ├── 80
 │   │   │   ├── 176fa651c9e0d43788614bc2c45a665ad75303
 │   │   │   ├── 6eb7783acfba1154c6512ac805270511a36431
 │   │   │   └── 8a830cee3cbcd16aee12976c1dccad3a51dfb1
+│   │   ├── 83
+│   │   │   └── 00c640fe3afd69d84a6e7061ddfbbc2a45f79d
+│   │   ├── 84
+│   │   │   └── 08060b2806390adbdcaa14077d3ab5019977bd
 │   │   ├── 85
 │   │   │   └── 401f1f8654163615fe81b09c20de8da6bcc5c5
 │   │   ├── 8b
@@ -178,13 +198,17 @@ Generated at Mon Dec 16 05:00:25 UTC 2024
 │   │   │   ├── 85457b6fa3df41211b8bb1077bf99fa47dcd83
 │   │   │   └── cec01aafe54f2e9e0428e4ab296579b5e7a52b
 │   │   ├── 91
+│   │   │   ├── 187f3114b3456a87aeedd94c81571aa1dab7e9
 │   │   │   └── a758045ce938874389a89c36a99e09a5f4c44f
 │   │   ├── 92
 │   │   │   └── 639b04863d2c050a1a526dd836d71cf67fbba9
 │   │   ├── 97
+│   │   │   ├── 669c6f0819d1e4622cea46c49f219a42f7d3d0
 │   │   │   └── b3ef8344e646414cfead32ffec584c5791c820
 │   │   ├── 99
 │   │   │   └── b67c2eafcb51a41ab952a8f4883305218ce1a5
+│   │   ├── 9b
+│   │   │   └── 94e1eda03d0c6bd2b98d03c93648ff56863dd4
 │   │   ├── 9d
 │   │   │   └── 42f42c32cf447237f9636275f685d5d49e11a4
 │   │   ├── 9f
@@ -245,12 +269,14 @@ Generated at Mon Dec 16 05:00:25 UTC 2024
 │   │   │   ├── a9709871d6ebef9e82ed55079d2ff04ce32f26
 │   │   │   └── efb6422bfd1aea8225b852b74b50576127fef8
 │   │   ├── cf
-│   │   │   └── 0d532c5b7660bc5458af6b0f43d6cfc82e4ba7
+│   │   │   ├── 0d532c5b7660bc5458af6b0f43d6cfc82e4ba7
+│   │   │   └── a8fd6de49900ddc125d0bf36e264fe8adccaf5
 │   │   ├── d1
 │   │   │   └── dcfd0cc172b9baa20b3e5be3d1b4d7fccb1e7d
 │   │   ├── d3
 │   │   │   ├── 638534845d08ff1beacede90db4c05c9264140
-│   │   │   └── 6e32609973f568ec5918457d3508482fd8c3f7
+│   │   │   ├── 6e32609973f568ec5918457d3508482fd8c3f7
+│   │   │   └── 861542ff660cc41ce7fcebab52c3fe71585b09
 │   │   ├── d5
 │   │   │   └── 64d0bc3dd917926892c55e3706cc116d5b165e
 │   │   ├── d7
@@ -281,8 +307,12 @@ Generated at Mon Dec 16 05:00:25 UTC 2024
 │   │   │   └── 3880c8949fc2e8066c389e567bc8660774a3ab
 │   │   ├── f2
 │   │   │   └── e5cbc125030616fdb36281dba4181a43f5e549
+│   │   ├── f4
+│   │   │   └── 957aa409f861cdc862d6e2c71f50e141084038
 │   │   ├── f5
 │   │   │   └── 927358d92c293693f5882df20e0947dd41b69b
+│   │   ├── f9
+│   │   │   └── d07095611647a70a7fcf336182eb647925d185
 │   │   ├── fb
 │   │   │   ├── 992a755abfffb702f3d752df8c1998d607a7f2
 │   │   │   └── d0f6fe421376f83ce7196fd2edac21b5ef742b
@@ -301,9 +331,8 @@ Generated at Mon Dec 16 05:00:25 UTC 2024
 │       ├── heads
 │       │   └── main
 │       ├── remotes
-│       │   └── origin
-│       │       └── main
 │       └── tags
+├── .gitattributes
 ├── .gitignore
 ├── .pytest_cache
 │   ├── .gitignore
@@ -649,7 +678,7 @@ Generated at Mon Dec 16 05:00:25 UTC 2024
 ├── pytest.ini
 └── requirements.txt
 
-191 directories, 453 files
+200 directories, 473 files
 ```
 
 ## Configuration Files
@@ -824,7 +853,38 @@ class BaseForm(Generic[T]):
                             st.error(error)
                         return
                 handle_submit(self.state.data)
-            st.markdown('</div>', unsafe_allow_html=True)```
+            st.markdown('</div>', unsafe_allow_html=True)
+
+class FormComponent:
+    """Base form component that handles common form functionality"""
+    
+    def __init__(self, key, title=None):
+        """
+        Initialize form component.
+        Args:
+            key (str): Unique form key
+            title (str, optional): Form title
+        """
+        self.key = key
+        self.title = title
+        self.form = None
+
+    def render(self, render_content_fn, handle_submit_fn):
+        """
+        Render form with content and submit handler.
+        Args:
+            render_content_fn: Function to render form contents
+            handle_submit_fn: Function to handle form submission
+        """
+        if self.title:
+            st.subheader(self.title)
+            
+        with st.form(key=self.key, clear_on_submit=True):
+            render_content_fn()
+            submit_button = st.form_submit_button("Submit")
+            
+            if submit_button:
+                handle_submit_fn()```
 
 ### frontend/components/quiz/quiz.py
 ```py
@@ -32618,11 +32678,11 @@ import sys
 
 def main():
     """Run administrative tasks."""
+<<<<<<< HEAD
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
-    try:
-        from django.core.management import execute_from_command_line
-    except ImportError as exc:
-        raise ImportError(
+=======
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hello_world.settings")
+>>>>>>> 3816b9147ddde21dc0e547c9496d1e29b6ee68df
             "Couldn't import Django. Are you sure it's installed and "
             "available on your PYTHONPATH environment variable? Did you "
             "forget to activate a virtual environment?"
@@ -32660,6 +32720,7 @@ You've got a blank canvas to work on from a git perspective as well. There's a s
 
 Everything you do here is contained within this one codespace. There is no repository on GitHub yet. If and when you’re ready you can click "Publish Branch" and we’ll create your repository and push up your project. If you were just exploring then and have no further need for this code then you can simply delete your codespace and it's gone forever.
 
+<<<<<<< HEAD
 As an expert code reviewer, first summarize the changes and then analyze the git diff.
 
 Most importantly, understand that your role is to catch bugs, mistakes, and potential issues BEFORE the code is reviewed by the team. 
@@ -32772,6 +32833,8 @@ Format your response in markdown, with code examples where relevant using approp
 Using the provided context below, evaluate the changes while considering the existing codebase architecture and patterns:`
 
 
+=======
+>>>>>>> 3816b9147ddde21dc0e547c9496d1e29b6ee68df
 ## installing dependancies
 
 ```python
@@ -32788,6 +32851,7 @@ python manage.py collectstatic
 
 ```python
 python manage.py runserver
+<<<<<<< HEAD
 PYTHONPATH=/workspaces/codespaces-django streamlit run frontend/main.py
 ```
 ## For backend tests:
@@ -32801,6 +32865,10 @@ STREAMLIT_TEST_DEBUG=true PYTHONPATH=/workspaces/codespaces-django DJANGO_ALLOW_
 
 ## FOR UX test
 STREAMLIT_TEST_DEBUG=true PYTHONPATH=/workspaces/codespaces-django DJANGO_ALLOW_ASYNC_UNSAFE=true pytest frontend/test_playwright.py -v
+=======
+```
+>>>>>>> 3816b9147ddde21dc0e547c9496d1e29b6ee68df
+
 ### backend/staticfiles/admin/css/vendor/select2/LICENSE-SELECT2.md
 
 The MIT License (MIT)

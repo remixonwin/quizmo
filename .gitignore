@@ -3,9 +3,12 @@ __pycache__/
 staticfiles/
 .env
 venv/
+<<<<<<< HEAD
 
 # Streamlit auth
 .streamlit/
 .streamlit/auth.json
 /node_modules/
 codebase.md
+=======
+>>>>>>> 3816b9147ddde21dc0e547c9496d1e29b6ee68df

@@ -40,3 +40,34 @@ class BaseForm(Generic[T]):
                         return
                 handle_submit(self.state.data)
             st.markdown('</div>', unsafe_allow_html=True)
+
+class FormComponent:
+    """Base form component that handles common form functionality"""
+    
+    def __init__(self, key, title=None):
+        """
+        Initialize form component.
+        Args:
+            key (str): Unique form key
+            title (str, optional): Form title
+        """
+        self.key = key
+        self.title = title
+        self.form = None
+
+    def render(self, render_content_fn, handle_submit_fn):
+        """
+        Render form with content and submit handler.
+        Args:
+            render_content_fn: Function to render form contents
+            handle_submit_fn: Function to handle form submission
+        """
+        if self.title:
+            st.subheader(self.title)
+            
+        with st.form(key=self.key, clear_on_submit=True):
+            render_content_fn()
+            submit_button = st.form_submit_button("Submit")
+            
+            if submit_button:
+                handle_submit_fn()
