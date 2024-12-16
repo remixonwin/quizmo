@@ -8,3 +8,4 @@ venv/
 .streamlit/
 .streamlit/auth.json
 /node_modules/
+codebase.md
