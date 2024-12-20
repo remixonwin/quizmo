@@ -1,0 +1,10 @@
+{
+    "summarize": true,
+    "summary_length": 100,
+    "ignore_patterns": [
+        "*.tmp",
+        "frontend/node_modules",
+        "node_modules"
+    ],
+    "delay": 5
+}
