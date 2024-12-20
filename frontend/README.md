@@ -25,6 +25,18 @@ npm run dev
 npm run dev -- --open
 ```
 
+## Testing
+
+After setting up the project, you can run the tests using the following commands:
+
+```bash
+# Run all tests
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+```
+
 ## Building
 
 To create a production version of your app:
